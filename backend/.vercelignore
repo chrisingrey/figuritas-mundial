@@ -1,0 +1,4 @@
+api/config/env/.env.dev
+api/config/env/serviceAccount.json
+dist
+node_modules

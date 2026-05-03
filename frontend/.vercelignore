@@ -1,0 +1,4 @@
+src/env/.env.development
+src/env/.env.production
+dist
+node_modules

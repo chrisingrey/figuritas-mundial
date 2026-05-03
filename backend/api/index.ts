@@ -1,26 +1,10 @@
-import express from "express";
-import dotenv from "dotenv";
-import path from "path";
-import { corsHandler } from "./common/middleware/corsHandler";
-import { errorHandler } from "./common/middleware/errorHandler";
-import { initializeApp } from "./config/app.config";
-
-dotenv.config({ path: path.resolve(__dirname, "../api/config/env/.env.dev") });
-
-const app = express();
-
-// ── Global middleware ────────────────────────────────────────────────────────
-app.use(corsHandler);
-app.use(express.json());
+import app, { bootstrapApp } from "./app";
 
 // ── Bootstrap ────────────────────────────────────────────────────────────────
 const PORT = Number(process.env.PORT ?? 3000);
 
 (async () => {
-  await initializeApp(app);
-
-  // Error handler must be registered after routes
-  app.use(errorHandler);
+  await bootstrapApp();
 
   const server = app.listen(PORT, "0.0.0.0", () => {
     console.log(`🚀 Figuritas Mundial API running on http://localhost:${PORT}`);

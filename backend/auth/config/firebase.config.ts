@@ -5,13 +5,12 @@ import path from "path";
 export function initializeFirebase(): void {
   if (admin.apps.length) return;
 
-  const serviceAccountPath = resolveServiceAccountPath();
+  const serviceAccount = resolveServiceAccount();
 
-  if (!serviceAccountPath) {
-    throw new Error("Firebase service account file not found at api/config/env/serviceAccount.json.");
+  if (!serviceAccount) {
+    throw new Error("Firebase service account is not configured. Set FIREBASE_SERVICE_ACCOUNT_JSON or provide api/config/env/serviceAccount.json.");
   }
 
-  const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, "utf8"));
   admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
 }
 
@@ -26,4 +25,16 @@ function resolveServiceAccountPath(): string | null {
   ];
 
   return candidates.find((candidate) => fs.existsSync(candidate)) ?? null;
+}
+
+function resolveServiceAccount(): admin.ServiceAccount | null {
+  const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+  if (serviceAccountJson) {
+    return JSON.parse(serviceAccountJson) as admin.ServiceAccount;
+  }
+
+  const serviceAccountPath = resolveServiceAccountPath();
+  if (!serviceAccountPath) return null;
+
+  return JSON.parse(fs.readFileSync(serviceAccountPath, "utf8")) as admin.ServiceAccount;
 }
