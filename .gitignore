@@ -3,6 +3,7 @@ dist
 backend/dist
 frontend/dist
 backend/api/config/env/.env.dev
+backend/api/config/env/.env.prod
 backend/api/config/env/serviceAccount.json
 frontend/src/env/.env.development
 frontend/src/env/.env.production
