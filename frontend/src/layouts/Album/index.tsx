@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { albumsService, type AlbumResponse, type AlbumRoleResponse, type MemberResponse, type StickerStatus } from "@backend";
+import { useUserLogged } from "@/context";
 import { worldCupAlbum } from "@/data/worldCupAlbum";
 import type { WorldCupSticker } from "@/types/album";
 import { TeamCodeDropdown } from "./TeamCodeDropdown";
@@ -49,6 +50,7 @@ const getSelectionGroup = (status: StickerStatus): SelectionGroup =>
 export default function Album() {
   const { albumId } = useParams<{ albumId: string }>();
   const navigate = useNavigate();
+  const { getAlbumPermissions, setAlbumPermissions } = useUserLogged();
 
   const [album, setAlbum] = useState<AlbumResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -91,16 +93,20 @@ export default function Album() {
   useEffect(() => {
     if (!albumId) return;
     albumsService.getAlbum(albumId)
-      .then(setAlbum)
+      .then(a => {
+        setAlbum(a);
+        if (a.permissions) setAlbumPermissions(albumId, a.permissions);
+      })
       .catch(() => navigate("/"))
       .finally(() => setLoading(false));
-  }, [albumId, navigate]);
+  }, [albumId, navigate, setAlbumPermissions]);
 
-  const canInvite = album?.permissions?.some(p => p.name === INVITE_PERMISSION) ?? false;
-  const canUpdateAlbum = album?.permissions?.some(p => p.name === UPDATE_ALBUM_PERMISSION) ?? false;
-  const canViewMembers = album?.permissions?.some(p => p.name === VIEW_MEMBERS_PERMISSION) ?? false;
-  const canManageMembers = album?.permissions?.some(p => p.name === MANAGE_MEMBER_PERMISSION) ?? false;
-  const canDeleteMembers = album?.permissions?.some(p => p.name === DELETE_MEMBER_PERMISSION) ?? false;
+  const currentPermissions = albumId ? (album?.permissions ?? getAlbumPermissions(albumId)) : [];
+  const canInvite = currentPermissions.some(p => p.name === INVITE_PERMISSION);
+  const canUpdateAlbum = currentPermissions.some(p => p.name === UPDATE_ALBUM_PERMISSION);
+  const canViewMembers = currentPermissions.some(p => p.name === VIEW_MEMBERS_PERMISSION);
+  const canManageMembers = currentPermissions.some(p => p.name === MANAGE_MEMBER_PERMISSION);
+  const canDeleteMembers = currentPermissions.some(p => p.name === DELETE_MEMBER_PERMISSION);
   const readOnlyAlbum = !canUpdateAlbum;
   const showManagementSections = canViewMembers || canInvite || canUpdateAlbum;
 
@@ -272,7 +278,11 @@ export default function Album() {
 
     try {
       const updated = await albumsService.bulkUpdateStickers(albumId, codes, targetStatus);
-      setAlbum(updated);
+      setAlbum(prev => ({
+        ...updated,
+        permissions: updated.permissions ?? prev?.permissions ?? currentPermissions,
+      }));
+      if (updated.permissions) setAlbumPermissions(albumId, updated.permissions);
     } catch {
       setAlbum(prevAlbum);
     } finally {
@@ -492,6 +502,26 @@ export default function Album() {
               )}
             </div>
           </div>
+
+          {readOnlyAlbum && (
+            <div className={styles.readOnlyFilters}>
+              <div className={styles.segmented}>
+                {groups.map(group => (
+                  <button
+                    type="button" key={group}
+                    className={group === selectedGroup ? styles.segBtnActive : styles.segBtn}
+                    onClick={() => { setSelectedGroup(group); setSelectedTeamCode("Todos"); }}
+                  >
+                    {group === "Todos" ? "Todos" : `G${group}`}
+                  </button>
+                ))}
+              </div>
+              <TeamCodeDropdown
+                teams={visibleTeams} selectedTeamCode={selectedTeamCode}
+                selectedGroup={selectedGroup} onSelect={setSelectedTeamCode}
+              />
+            </div>
+          )}
 
           <div className={styles.stickerGrid}>
             {visibleStickers.map(sticker => {

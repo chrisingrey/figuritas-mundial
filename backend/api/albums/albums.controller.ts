@@ -225,14 +225,14 @@ export const bulkUpdateStickers = asyncHandler(async (
   res: Response,
   _next: NextFunction,
 ) => {
-  const { albumId } = toAuthorizedMemberRequest(req).authorizedMember;
+  const { albumId, permissions } = toAuthorizedMemberRequest(req).authorizedMember;
   const { codes, status } = req.body as { codes: string[]; status: string };
   if (!Array.isArray(codes) || codes.some(code => typeof code !== "string") || typeof status !== "string") {
     res.status(400).json({ message: "Invalid body: codes (string array) and status (string) required." });
     return;
   }
   const album = await services.albumService.bulkSetStickerStatus(albumId, codes, status as import("@businessLogic/albums/AlbumSticker").StickerStatus);
-  res.status(200).json(mapAlbumResponse(album));
+  res.status(200).json(mapAlbumResponse(album, permissions));
 });
 
 // ─── Invitations ─────────────────────────────────────────────────────────────
