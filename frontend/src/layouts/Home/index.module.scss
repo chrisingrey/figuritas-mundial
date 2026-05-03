@@ -1,0 +1,512 @@
+.page {
+  min-height: 100svh;
+  background:
+    radial-gradient(circle at 0 4%, rgba(71, 92, 206, 0.14), transparent 26%),
+    radial-gradient(circle at 100% 0, rgba(255, 109, 0, 0.16), transparent 28%),
+    linear-gradient(90deg, rgba(41, 183, 184, 0.2) 0 12px, transparent 12px calc(100% - 12px), rgba(238, 32, 39, 0.2) calc(100% - 12px)),
+    #f8f7f1;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: grid;
+  gap: 8px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 2px solid #101214;
+}
+
+.logo {
+  color: #101214;
+  font-size: 18px;
+  font-weight: 1000;
+  line-height: 1;
+  text-transform: uppercase;
+
+  strong {
+    display: block;
+    color: #2368c4;
+  }
+}
+
+.userArea {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: #5a5d63;
+  font-size: 13px;
+  font-weight: 800;
+
+  span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.logoutBtn,
+.openBtn,
+.inviteBtn,
+.createForm button,
+.modalActions button,
+.inviteSend {
+  min-height: 40px;
+  border: 2px solid #101214;
+  border-radius: 7px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.logoutBtn {
+  flex: 0 0 auto;
+  padding: 0 12px;
+  color: #101214;
+  background: #ffffff;
+  box-shadow: 3px 3px 0 #f7d719;
+}
+
+.main {
+  width: min(100%, 1040px);
+  margin: 0 auto;
+  padding: 18px 16px 42px;
+}
+
+.loading {
+  padding: 80px 16px;
+  color: #101214;
+  text-align: center;
+  font-weight: 900;
+}
+
+.empty {
+  display: grid;
+  place-items: center;
+  padding-top: 44px;
+}
+
+.emptyCard,
+.albumCard,
+.membersCard,
+.modal {
+  background: rgba(255, 255, 255, 0.96);
+  border: 2px solid #101214;
+  border-radius: 8px;
+  box-shadow: 5px 5px 0 rgba(16, 18, 20, 0.16);
+}
+
+.emptyCard {
+  width: min(100%, 500px);
+  padding: 24px 18px;
+  text-align: center;
+
+  h2 {
+    margin: 0 0 8px;
+    color: #101214;
+    font-size: 24px;
+    font-weight: 1000;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  p {
+    margin: 0 0 20px;
+    color: #5a5d63;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.5;
+  }
+}
+
+.createForm,
+.inviteForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  input {
+    min-height: 46px;
+    padding: 0 12px;
+    color: #101214;
+    background: #ffffff;
+    border: 2px solid #101214;
+    border-radius: 7px;
+    font-size: 16px;
+    outline: none;
+
+    &:focus {
+      border-color: #2368c4;
+      box-shadow: 0 0 0 4px rgba(35, 104, 196, 0.18);
+    }
+  }
+
+  button {
+    color: #ffffff;
+    background: #2368c4;
+    box-shadow: 4px 4px 0 #101214;
+
+    &:disabled {
+      opacity: 0.58;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.content {
+  display: grid;
+  gap: 16px;
+}
+
+.albumCard,
+.membersCard {
+  padding: 18px;
+}
+
+.albumHeader {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 22px;
+
+  h2 {
+    margin: 0 0 4px;
+    color: #101214;
+    font-size: 25px;
+    font-weight: 1000;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+}
+
+.albumSub {
+  margin: 0;
+  color: #5a5d63;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.openBtn {
+  justify-self: start;
+  padding: 0 18px;
+  color: #ffffff;
+  background: #2368c4;
+  box-shadow: 4px 4px 0 #101214;
+}
+
+.progressSection {
+  margin-bottom: 22px;
+  padding: 14px;
+  background:
+    linear-gradient(90deg, rgba(255, 109, 0, 0.16), rgba(185, 228, 97, 0.16), rgba(35, 104, 196, 0.16)),
+    #ffffff;
+  border: 2px solid #101214;
+  border-radius: 8px;
+}
+
+.progressHeader {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.progressLabel {
+  color: #101214;
+  font-size: 12px;
+  font-weight: 1000;
+  text-transform: uppercase;
+}
+
+.progressCount {
+  color: #5a5d63;
+  font-size: 13px;
+  font-weight: 800;
+
+  strong {
+    color: #101214;
+    font-size: 18px;
+  }
+}
+
+.progressBar,
+.groupBar {
+  overflow: hidden;
+  background: #ffffff;
+  border: 2px solid #101214;
+}
+
+.progressBar {
+  height: 16px;
+  border-radius: 999px;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #2368c4, #18a957, #f7d719, #ff6d00);
+  transition: width 0.4s ease;
+}
+
+.groupGrid {
+  display: grid;
+  gap: 9px;
+  margin-bottom: 20px;
+}
+
+.groupItem {
+  display: grid;
+  grid-template-columns: 38px 1fr 52px;
+  align-items: center;
+  gap: 8px;
+}
+
+.groupLabel {
+  display: grid;
+  place-items: center;
+  min-height: 30px;
+  color: #101214;
+  background: #f7d719;
+  border: 2px solid #101214;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 1000;
+}
+
+.groupBar {
+  height: 10px;
+  border-radius: 999px;
+}
+
+.groupFill {
+  height: 100%;
+  background: #18a957;
+  transition: width 0.3s ease;
+}
+
+.groupCount {
+  color: #5a5d63;
+  font-size: 11px;
+  font-weight: 900;
+  text-align: right;
+}
+
+.actions {
+  padding-top: 16px;
+  border-top: 2px solid #101214;
+}
+
+.inviteBtn {
+  padding: 0 16px;
+  color: #101214;
+  background: #ffffff;
+  box-shadow: 4px 4px 0 #ff6d00;
+}
+
+.membersCard {
+  h3 {
+    margin: 0 0 14px;
+    color: #101214;
+    font-size: 18px;
+    font-weight: 1000;
+    text-transform: uppercase;
+  }
+}
+
+.noMembers {
+  margin: 0;
+  color: #5a5d63;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.memberList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.memberRow {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  background: #ffffff;
+  border: 2px solid #101214;
+  border-radius: 8px;
+}
+
+.memberAvatar {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  color: #101214;
+  background: #b9e461;
+  border: 2px solid #101214;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: 1000;
+}
+
+.memberInfo {
+  min-width: 0;
+
+  strong,
+  span {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  strong {
+    color: #101214;
+    font-size: 14px;
+    font-weight: 1000;
+  }
+
+  span {
+    color: #5a5d63;
+    font-size: 12px;
+    font-weight: 800;
+  }
+}
+
+.memberStatus {
+  grid-column: 1 / -1;
+  justify-self: start;
+  padding: 4px 8px;
+  color: #ffffff;
+  background: #18a957;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 1000;
+  text-transform: uppercase;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(16, 18, 20, 0.54);
+}
+
+.modal {
+  width: min(100%, 440px);
+  padding: 24px 18px;
+
+  h3 {
+    margin: 0 0 8px;
+    color: #101214;
+    font-size: 22px;
+    font-weight: 1000;
+    text-transform: uppercase;
+  }
+
+  p {
+    margin: 0 0 18px;
+    color: #5a5d63;
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.5;
+  }
+}
+
+.inviteError {
+  margin: 0;
+  color: #c51632;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.inviteSuccess {
+  padding: 12px;
+  color: #101214;
+  background: #b9e461;
+  border: 2px solid #101214;
+  border-radius: 7px;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.modalActions {
+  display: grid;
+  gap: 10px;
+
+  button:first-child {
+    color: #101214;
+    background: #ffffff;
+  }
+}
+
+.inviteSend {
+  color: #ffffff;
+  background: #2368c4;
+}
+
+@media (min-width: 720px) {
+  .header {
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    padding: 0 clamp(20px, 4vw, 48px);
+    min-height: 66px;
+  }
+
+  .logo strong {
+    display: inline;
+  }
+
+  .userArea {
+    justify-content: flex-end;
+  }
+
+  .main {
+    padding: 28px clamp(20px, 4vw, 24px) 56px;
+  }
+
+  .albumCard,
+  .membersCard {
+    padding: 26px;
+  }
+
+  .albumHeader {
+    grid-template-columns: 1fr auto;
+    align-items: start;
+  }
+
+  .progressHeader {
+    grid-template-columns: 1fr auto;
+    align-items: baseline;
+  }
+
+  .groupGrid {
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  }
+
+  .content {
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+    align-items: start;
+  }
+
+  .memberRow {
+    grid-template-columns: auto 1fr auto;
+  }
+
+  .memberStatus {
+    grid-column: auto;
+  }
+
+  .modalActions {
+    display: flex;
+    justify-content: flex-end;
+  }
+}

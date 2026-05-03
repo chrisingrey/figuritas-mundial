@@ -1,0 +1,406 @@
+main {
+  min-height: 100vh;
+  background: #f4f7fb;
+}
+
+.hero {
+  position: relative;
+  min-height: 540px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  padding: 48px clamp(20px, 5vw, 72px);
+  color: #ffffff;
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(7, 12, 18, 0.88), rgba(7, 12, 18, 0.58) 44%, rgba(7, 12, 18, 0.1));
+}
+
+.heroImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.heroContent {
+  position: relative;
+  z-index: 1;
+  max-width: 720px;
+}
+
+.eyebrow {
+  margin: 0 0 14px;
+  color: #ffd15c;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  max-width: 760px;
+  font-size: clamp(44px, 7vw, 86px);
+  line-height: 0.96;
+  letter-spacing: 0;
+}
+
+.heroCopy {
+  max-width: 620px;
+  margin: 22px 0 0;
+  color: #e8eef7;
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+button {
+  border: 0;
+  border-radius: 8px;
+  min-height: 42px;
+  padding: 0 16px;
+  cursor: pointer;
+  color: #ffffff;
+  background: #155eef;
+  font-weight: 800;
+}
+
+button.secondary {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dashboard {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  background: #d8dee8;
+  border-bottom: 1px solid #d8dee8;
+}
+
+.metric {
+  min-height: 120px;
+  padding: 24px;
+  background: #ffffff;
+}
+
+.metric span {
+  display: block;
+  font-size: 34px;
+  font-weight: 900;
+}
+
+.metric p {
+  margin: 6px 0 0;
+  color: #667085;
+  font-size: 14px;
+}
+
+.progressTrack {
+  height: 8px;
+  margin-top: 18px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e4e7ec;
+}
+
+.progressTrack div {
+  height: 100%;
+  background: linear-gradient(90deg, #155eef, #18a957, #d5a21d);
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) 1fr;
+  gap: 24px;
+  padding: 28px clamp(16px, 4vw, 48px);
+}
+
+.sidebar,
+.mainPanel,
+.pagesBand {
+  background: #ffffff;
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+}
+
+.sidebar {
+  align-self: start;
+  padding: 18px;
+}
+
+.mainPanel {
+  min-width: 0;
+  padding: 22px;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.panelHeader h2 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.panelHeader p,
+.panelHeader span {
+  margin: 4px 0 0;
+  color: #667085;
+  font-size: 14px;
+}
+
+.segmented,
+.modeSwitch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.segmented button,
+.modeSwitch button {
+  min-height: 34px;
+  padding: 0 12px;
+  background: #eef2f6;
+  color: #344054;
+}
+
+.segmented button.active,
+.modeSwitch button.active,
+.teamRow.active {
+  background: #13233a;
+  color: #ffffff;
+}
+
+.teamList {
+  display: grid;
+  gap: 8px;
+  max-height: 620px;
+  margin-top: 16px;
+  overflow: auto;
+}
+
+.teamRow {
+  display: grid;
+  grid-template-columns: 54px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 54px;
+  padding: 8px 10px;
+  text-align: left;
+  color: #101828;
+  background: #f8fafc;
+}
+
+.teamRow span {
+  display: grid;
+  place-items: center;
+  height: 34px;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #155eef;
+  font-size: 13px;
+}
+
+.teamRow.active span {
+  color: #13233a;
+}
+
+.teamRow strong,
+.teamRow small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.teamRow small {
+  color: inherit;
+  opacity: 0.72;
+}
+
+.stickerGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 12px;
+}
+
+.sticker {
+  min-height: 190px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 12px;
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #ffffff, #eef4ff);
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.08s, box-shadow 0.08s;
+}
+
+.sticker:hover {
+  box-shadow: 0 2px 8px rgba(21, 94, 239, 0.12);
+  transform: translateY(-1px);
+}
+
+.sticker:active {
+  transform: scale(0.97);
+}
+
+.sticker.owned {
+  border-color: #18a957;
+  background: linear-gradient(180deg, #f0fff6, #e7f8ee);
+}
+
+.stickerTop,
+.stickerBottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  color: #475467;
+  font-size: 12px;
+}
+
+.stickerCode {
+  color: #155eef;
+  font-size: 13px;
+}
+
+.sticker.owned .stickerCode {
+  color: #18a957;
+}
+
+.stickerCheck {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #18a957;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+.stickerBody {
+  display: grid;
+  place-items: center;
+  min-height: 96px;
+  border: 1px dashed #b7c1d1;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.72);
+  text-align: center;
+  color: #101828;
+  font-weight: 900;
+}
+
+.sticker.owned .stickerBody {
+  border-color: #86efac;
+}
+
+.labelOwned {
+  color: #18a957;
+  font-weight: 700;
+}
+
+.labelMissing {
+  color: #667085;
+}
+
+.emptyState {
+  grid-column: 1 / -1;
+  padding: 48px;
+  text-align: center;
+  color: #667085;
+}
+
+.pagesBand {
+  margin: 0 clamp(16px, 4vw, 48px) 42px;
+  padding: 22px;
+}
+
+.pageRail {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 12px;
+}
+
+.pageTile {
+  min-height: 112px;
+  padding: 14px;
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.pageTile span,
+.pageTile small {
+  display: block;
+  color: #667085;
+  font-size: 12px;
+}
+
+.pageTile strong {
+  display: block;
+  margin: 14px 0 8px;
+}
+
+.pageTile.main {
+  border-color: #d5a21d;
+}
+
+.pageTile.knockout,
+.pageTile.finals {
+  border-color: #155eef;
+}
+
+@media (max-width: 900px) {
+  .dashboard,
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .hero {
+    min-height: 620px;
+    align-items: flex-end;
+  }
+}
+
+@media (max-width: 560px) {
+  .hero {
+    padding: 32px 18px;
+  }
+
+  h1 {
+    font-size: 42px;
+  }
+
+  .teamRow {
+    grid-template-columns: 50px 1fr;
+  }
+
+  .teamRow small {
+    display: none;
+  }
+}

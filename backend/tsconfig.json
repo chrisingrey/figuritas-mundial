@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "strict": true,
+    "esModuleInterop": true,
+    "types": ["node"],
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@api/*": ["api/*"],
+      "@auth/*": ["auth/*"],
+      "@businessLogic/*": ["businessLogic/*"],
+      "@dataAccess/*": ["dataAccess/*"],
+      "@errors": ["errors/index.ts"],
+      "@models": ["models/index.ts"],
+      "@utils": ["utils/index.ts"]
+    },
+    "outDir": "dist",
+    "rootDir": "."
+  },
+  "include": ["api/**/*.ts", "auth/**/*.ts", "businessLogic/**/*.ts", "dataAccess/**/*.ts", "errors/**/*.ts"]
+}

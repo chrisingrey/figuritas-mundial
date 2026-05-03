@@ -1,0 +1,1 @@
+export { figuritasMundialLogoDarkSvg } from "./figuritasMundialLogoDarkSvg";

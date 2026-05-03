@@ -1,0 +1,9 @@
+@use "./global.variables.scss";
+
+$pageBackground: var(--page-primary-background);
+$surfaceBackground: var(--page-secondary-background);
+$titleColor: var(--title-font-color);
+$subtitleColor: var(--subtitle-font-color);
+$primary: var(--color-primary);
+$secondary: var(--color-secondary);
+$action: var(--color-action);
