@@ -88,13 +88,34 @@ export class SessionService implements ISessionService {
     }
 
     const user = await this.userRepository.getOrDefaultAsync((u) =>
-      caseInsensitiveCompare(u.email, email),
+      u.firebaseId === decoded.uid || caseInsensitiveCompare(u.email, email),
     );
-    if (!user) {
-      throw new AppError(401, ErrorCode.INVALID_CREDENTIALS, "Invalid credentials.");
+
+    if (user) {
+      const patch: Partial<Omit<User, "id">> = {};
+      if (!user.firebaseId) patch.firebaseId = decoded.uid;
+      if (!user.imageUrl && decoded.picture) patch.imageUrl = decoded.picture;
+
+      return Object.keys(patch).length > 0
+        ? this.userRepository.patchByIdAndSaveAsync(user.id, patch)
+        : user;
     }
 
-    return user;
+    const name = decoded.name || "";
+    const [fullname, ...surnameParts] = name.split(" ");
+
+    return this.userRepository.createAndSaveAsync({
+      id: crypto.randomUUID(),
+      email,
+      username: buildFirebaseUsername(decoded.uid),
+      fullname: fullname || email.split("@")[0],
+      surname: surnameParts.join(" "),
+      dateOfBirth: "",
+      imageUrl: decoded.picture ?? "",
+      passwordHash: "",
+      firebaseId: decoded.uid,
+      twoFactorEnabled: false,
+    });
   }
 
   private async resolvePasswordUser(args: CredentialsArgs): Promise<User> {
@@ -121,4 +142,8 @@ export class SessionService implements ISessionService {
     }
     return user;
   }
+}
+
+function buildFirebaseUsername(firebaseUid: string): string {
+  return `google-${firebaseUid.slice(0, 16)}`;
 }

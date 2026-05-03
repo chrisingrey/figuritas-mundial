@@ -32,6 +32,24 @@ export class UserService implements IUserService {
       ? await this.obtainFromFirebase(firebaseIdToken)
       : args;
 
+    if (firebaseIdToken) {
+      const existingUser = await this.userRepository.getOrDefaultAsync((u) =>
+        (!!args.firebaseId && u.firebaseId === args.firebaseId) ||
+        (!!args.email && caseInsensitiveCompare(u.email, args.email)),
+      );
+
+      if (existingUser) {
+        const patch: Partial<Omit<User, "id">> = {};
+        if (!existingUser.firebaseId && args.firebaseId) patch.firebaseId = args.firebaseId;
+        if (!existingUser.imageUrl && args.imageUrl) patch.imageUrl = args.imageUrl;
+
+        if (Object.keys(patch).length > 0) {
+          await this.userRepository.patchByIdAndSaveAsync(existingUser.id, patch);
+        }
+        return;
+      }
+    }
+
     await this.assertCreateUser(args);
 
     const passwordHash = firebaseIdToken
@@ -47,8 +65,9 @@ export class UserService implements IUserService {
       fullname: args.fullname,
       surname: args.surname,
       dateOfBirth: args.dateOfBirth,
-      imageUrl: "",
+      imageUrl: args.imageUrl ?? "",
       passwordHash,
+      firebaseId: args.firebaseId,
       twoFactorEnabled: false,
     });
 
@@ -112,22 +131,22 @@ export class UserService implements IUserService {
 
     const existingUser = await this.userRepository.getOrDefaultAsync(
       (u) =>
-        caseInsensitiveCompare(u.email, args.email) ||
+        (!!args.email && caseInsensitiveCompare(u.email, args.email)) ||
         (!!args.username && caseInsensitiveCompare(u.username, args.username)),
     );
     if (existingUser) {
-      throw new AppError(409, caseInsensitiveCompare(args.email, existingUser.email) ? ErrorCode.EMAIL_ALREADY_EXISTS : ErrorCode.USERNAME_ALREADY_EXISTS, caseInsensitiveCompare(args.email, existingUser.email) ? "An account with this email already exists." : "An account with this username already exists.");
+      throw new AppError(409, args.email && caseInsensitiveCompare(args.email, existingUser.email) ? ErrorCode.EMAIL_ALREADY_EXISTS : ErrorCode.USERNAME_ALREADY_EXISTS, args.email && caseInsensitiveCompare(args.email, existingUser.email) ? "An account with this email already exists." : "An account with this username already exists.");
     }
 
     const existingPendingVerification =
       await this.pendingUserVerificationRepository.getOrDefaultAsync(
         (p) =>
-          caseInsensitiveCompare(p.email, args.email) ||
+          (!!args.email && caseInsensitiveCompare(p.email, args.email)) ||
           (!!args.username &&
             caseInsensitiveCompare(p.username, args.username)),
       );
     if (existingPendingVerification) {
-      throw new AppError(409, caseInsensitiveCompare(args.email, existingPendingVerification.email) ? ErrorCode.EMAIL_ALREADY_EXISTS : ErrorCode.USERNAME_ALREADY_EXISTS, caseInsensitiveCompare(args.email, existingPendingVerification.email) ? "An account with this email already exists." : "An account with this username already exists.");
+      throw new AppError(409, args.email && caseInsensitiveCompare(args.email, existingPendingVerification.email) ? ErrorCode.EMAIL_ALREADY_EXISTS : ErrorCode.USERNAME_ALREADY_EXISTS, args.email && caseInsensitiveCompare(args.email, existingPendingVerification.email) ? "An account with this email already exists." : "An account with this username already exists.");
     }
   }
 
@@ -143,11 +162,13 @@ export class UserService implements IUserService {
 
     return {
       firebaseIdToken,
+      firebaseId: decoded.uid,
       email,
-      username: "",
+      username: buildFirebaseUsername(decoded.uid),
       fullname: fullname || email.split("@")[0],
       surname,
       dateOfBirth: "",
+      imageUrl: decoded.picture ?? "",
     };
   }
 
@@ -192,4 +213,8 @@ export class UserService implements IUserService {
       }
     }
   }
+}
+
+function buildFirebaseUsername(firebaseUid: string): string {
+  return `google-${firebaseUid.slice(0, 16)}`;
 }
