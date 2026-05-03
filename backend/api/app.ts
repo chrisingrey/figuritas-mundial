@@ -50,18 +50,21 @@ function bootstrapErrorHandler(
 ): void {
   console.error("API bootstrap failed:", err);
 
-  const error = err instanceof Error ? err : null;
   const statusCode = typeof err === "object" && err !== null && "statusCode" in err && typeof err.statusCode === "number"
     ? err.statusCode
     : 500;
   const code = typeof err === "object" && err !== null && "code" in err && typeof err.code === "string"
     ? err.code
     : "INTERNAL_ERROR";
+  const isKnownError = statusCode !== 500 || code !== "INTERNAL_ERROR";
+  const message = isKnownError && err instanceof Error
+    ? err.message
+    : "Internal server error.";
 
   res.status(statusCode).json({
     error_code: code,
     code,
-    message: error?.message ?? "An unexpected internal error occurred.",
+    message,
   });
 }
 

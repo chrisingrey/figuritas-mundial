@@ -28,6 +28,6 @@ export const errorHandler = (
   res.status(500).json({
     error_code: "INTERNAL_ERROR",
     code: "INTERNAL_ERROR",
-    message: "An unexpected internal error occurred.",
+    message: "Internal server error.",
   } satisfies ErrorResponse);
 };
