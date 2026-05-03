@@ -1,6 +1,6 @@
 import type { IRepository } from "@dataAccess/IRepository";
 import { AppError, ErrorCode } from "@errors";
-import type { IAlbumInviteService } from "./IAlbumInviteService";
+import type { IAlbumInviteService, AlbumInvitationWithAlbumName } from "./IAlbumInviteService";
 import type { AlbumInvitation } from "./AlbumInvitation";
 import { InvitationStatus } from "./InvitationStatus";
 import type { InviteMemberArgs } from "./InviteMemberArgs";
@@ -166,6 +166,25 @@ export class AlbumInviteService implements IAlbumInviteService {
     await this.invitationRepository.patchByIdAndSaveAsync(invitationId, {
       status: InvitationStatus.ACCEPTED,
     });
+  }
+
+  async getMyInvitations(userEmail: string): Promise<AlbumInvitationWithAlbumName[]> {
+    const now = new Date();
+    const invitations = await this.invitationRepository.getAllAsync(
+      (i: AlbumInvitation) =>
+        i.invitedEmail.toLowerCase() === userEmail.toLowerCase() &&
+        i.status === InvitationStatus.PENDING &&
+        new Date(i.expiresAt) > now,
+    );
+
+    const results: AlbumInvitationWithAlbumName[] = [];
+    for (const invitation of invitations) {
+      const album = await this.albumRepository.getOrDefaultAsync(
+        (a: Album) => a.id === invitation.albumId,
+      );
+      results.push({ ...invitation, albumName: album?.name ?? "Album" });
+    }
+    return results;
   }
 
   async getInvitations(albumId: string): Promise<AlbumInvitation[]> {

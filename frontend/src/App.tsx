@@ -6,11 +6,25 @@ import Album from "@/layouts/Album";
 import AcceptInvitation from "@/layouts/AcceptInvitation";
 import type { ReactNode } from "react";
 
+const REDIRECT_KEY = "fwc_redirect";
+
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const { user, loading } = useUserLogged();
   if (loading) return <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", color: "#667085" }}>Cargando...</div>;
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) {
+    const intended = window.location.pathname + window.location.search;
+    if (intended !== "/" && intended !== "/login") {
+      sessionStorage.setItem(REDIRECT_KEY, intended);
+    }
+    return <Navigate to="/login" replace />;
+  }
   return <>{children}</>;
+}
+
+export function consumeRedirect(): string {
+  const url = sessionStorage.getItem(REDIRECT_KEY) ?? "/";
+  sessionStorage.removeItem(REDIRECT_KEY);
+  return url;
 }
 
 function GuestRoute({ children }: { children: ReactNode }) {

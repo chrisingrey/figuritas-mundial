@@ -10,6 +10,7 @@ import {
   getPagedNotifications,
   patchNotification,
   getMyAlbums,
+  getMyInvitations,
 } from "./me.controller";
 
 const router = Router();
@@ -25,5 +26,6 @@ router.get("/notifications", getPagedNotifications);
 router.get("/notifications/:id", getNotificationById);
 router.patch("/notifications/:id", patchNotification);
 router.get("/albums", getMyAlbums);
+router.get("/invitations", getMyInvitations);
 
 export { router as meRouter };

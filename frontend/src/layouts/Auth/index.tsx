@@ -3,6 +3,7 @@ import axios from "axios";
 import { FirebaseError } from "firebase/app";
 import { useNavigate } from "react-router-dom";
 import { authService } from "@backend";
+import { consumeRedirect } from "@/App";
 import {
   registerWithEmailAndPassword,
   signInWithEmailAndPasswordToken,
@@ -115,7 +116,7 @@ export default function Auth() {
       }
       const me = await authService.me();
       login(me);
-      navigate("/");
+      navigate(consumeRedirect());
     } catch (err) {
       setError(getAuthErrorMessage(err, mode));
     } finally {
@@ -135,7 +136,7 @@ export default function Auth() {
       }
       const me = await authService.me();
       login(me);
-      navigate("/");
+      navigate(consumeRedirect());
     } catch (err) {
       setError(getAuthErrorMessage(err, "login"));
     } finally {

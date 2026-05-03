@@ -20,6 +20,7 @@ import type {
 import { mapNotificationResponse } from "./NotificationResponse";
 import { mapNotificationPageResponse } from "./NotificationResponse";
 import { mapMyAlbumMembershipResponse } from "./MyAlbumMembershipResponse";
+import type { AlbumInvitationWithAlbumName } from "@businessLogic/albumInvite";
 
 export const getCurrentUser = asyncHandler(async (
   req: Request,
@@ -159,4 +160,21 @@ export const getPagedNotifications = asyncHandler(async (
     );
 
   res.status(200).json(mapNotificationPageResponse(notificationsPage));
+});
+
+export const getMyInvitations = asyncHandler(async (
+  req: Request,
+  res: Response,
+  _next: NextFunction,
+) => {
+  const { authenticatedUser } = toAuthenticatedRequest(req);
+  const invitations = await services.albumInviteService.getMyInvitations(authenticatedUser.email);
+  res.status(200).json(invitations.map((inv: AlbumInvitationWithAlbumName) => ({
+    id: inv.id,
+    albumId: inv.albumId,
+    albumName: inv.albumName,
+    invitedEmail: inv.invitedEmail,
+    status: inv.status,
+    expiresAt: new Date(inv.expiresAt).toISOString(),
+  })));
 });
