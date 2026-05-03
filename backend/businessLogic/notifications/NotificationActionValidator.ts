@@ -4,7 +4,7 @@ import { NotificationTargetPage } from "./NotificationTargetPage";
 
 const takeMeThereActionSchema = z.object({
   type: z.literal(NotificationActionType.TAKE_ME_THERE),
-  targetPage: z.enum([NotificationTargetPage.PROFILE, NotificationTargetPage.NOTIFICATIONS]),
+  targetPage: z.enum([NotificationTargetPage.PROFILE, NotificationTargetPage.NOTIFICATIONS, NotificationTargetPage.ALBUM_INVITE]),
   metadata: z.record(z.string()).optional(),
 });
 
