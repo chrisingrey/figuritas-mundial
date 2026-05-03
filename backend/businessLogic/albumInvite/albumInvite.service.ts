@@ -98,7 +98,7 @@ export class AlbumInviteService implements IAlbumInviteService {
         albumName: album.name,
         invitedEmail: invitation.invitedEmail,
         invitationId: invitation.id,
-        appBaseUrl: process.env.APP_BASE_URL!,
+        appBaseUrl: resolveFrontendBaseUrl(),
       }),
     });
 
@@ -144,4 +144,12 @@ export class AlbumInviteService implements IAlbumInviteService {
 
     return updated;
   }
+}
+
+function resolveFrontendBaseUrl(): string {
+  return (
+    process.env.FRONTEND_BASE_URL ??
+    process.env.APP_BASE_URL ??
+    "http://localhost:5173"
+  ).replace(/\/+$/, "");
 }

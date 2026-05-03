@@ -9,7 +9,7 @@ export interface MemberInvitationPageArgs {
 }
 
 export const buildMemberInvitationEmail = (args: MemberInvitationPageArgs): string => {
-  const inviteUrl = `${args.appBaseUrl}/albums/${args.albumId}/invitations/${args.invitationId}`;
+  const inviteUrl = `${args.appBaseUrl}/album/${encodeURIComponent(args.albumId)}?invitationId=${encodeURIComponent(args.invitationId)}`;
 
   return buildBrandedEmail({
     eyebrow: "Album invitation",
