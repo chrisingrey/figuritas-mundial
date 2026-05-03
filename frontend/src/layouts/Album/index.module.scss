@@ -1,5 +1,6 @@
 .page {
   min-height: 100svh;
+  overflow-x: hidden;
   background:
     radial-gradient(circle at 100% 0, rgba(255, 109, 0, 0.14), transparent 28%),
     linear-gradient(90deg, rgba(41, 183, 184, 0.2) 0 12px, transparent 12px calc(100% - 12px), rgba(177, 23, 45, 0.2) calc(100% - 12px)),
@@ -15,22 +16,26 @@
   font-weight: 900;
 }
 
+// ─── Header ────────────────────────────────────────────────────────────────────
+
 .header {
   position: sticky;
   top: 0;
   z-index: 10;
   display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 10px;
+  grid-template-columns: auto 1fr;
+  gap: 8px;
   align-items: center;
-  padding: 12px 16px;
+  padding: 10px 12px;
+  width: 100%;
+  min-height: 58px;
   background: rgba(255, 255, 255, 0.96);
   border-bottom: 2px solid #101214;
 }
 
 .backBtn {
-  min-height: 38px;
-  padding: 0 12px;
+  min-height: 36px;
+  padding: 0 10px;
   color: #101214;
   background: #ffffff;
   border: 2px solid #101214;
@@ -39,25 +44,23 @@
   font-weight: 900;
   cursor: pointer;
   box-shadow: 3px 3px 0 #f7d719;
+  white-space: nowrap;
 }
 
 .title {
-  min-width: 0;
+  min-inline-size: 0;
   color: #101214;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 1000;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.headerRight {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .progress {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
   padding: 5px 9px;
   color: #101214;
   background: #b9e461;
@@ -68,21 +71,621 @@
   white-space: nowrap;
 }
 
-.inviteBtn {
-  min-height: 34px;
-  padding: 0 12px;
+.memberActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.shareBtn {
+  flex: 0 0 auto;
+  min-height: 30px;
+  padding: 0 10px;
   color: #101214;
   background: #f7d719;
   border: 2px solid #101214;
   border-radius: 7px;
   box-shadow: 3px 3px 0 #101214;
-  font-size: 12px;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.exportBtn {
+  flex: 0 0 auto;
+  min-height: 30px;
+  padding: 0 10px;
+  color: #ffffff;
+  background: #2368c4;
+  border: 2px solid #101214;
+  border-radius: 7px;
+  box-shadow: 3px 3px 0 #101214;
+  font-size: 11px;
   font-weight: 900;
   cursor: pointer;
   white-space: nowrap;
 }
 
-// ─── Invite modal ─────────────────────────────────────────────────────────────
+// ─── Workspace ────────────────────────────────────────────────────────────────
+
+.workspace {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  width: 100%;
+  min-inline-size: 0;
+  box-sizing: border-box;
+}
+
+.readOnlyWorkspace {
+  display: block;
+}
+
+.sidebar,
+.mainPanel {
+  background: rgba(255, 255, 255, 0.96);
+  border: 2px solid #101214;
+  border-radius: 8px;
+  box-shadow: 5px 5px 0 rgba(16, 18, 20, 0.16);
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  min-inline-size: 0;
+  overflow: visible;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.mainPanel {
+  width: 100%;
+  min-inline-size: 0;
+  overflow: hidden;
+  padding: 14px;
+}
+
+// ─── Section blocks (within sidebar) ──────────────────────────────────────────
+
+.sectionBlock {
+  position: relative;
+  width: 100%;
+  min-inline-size: 0;
+  overflow: visible;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 2px solid #101214;
+  border-radius: 8px;
+  box-shadow: 5px 5px 0 rgba(16, 18, 20, 0.16);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+  min-inline-size: 0;
+
+  h2 {
+    margin: 0;
+    color: #101214;
+    font-size: 17px;
+    font-weight: 1000;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  > div {
+    min-inline-size: 0;
+  }
+
+  span {
+    margin: 4px 0 0;
+    display: block;
+    color: #5a5d63;
+    font-size: 11px;
+    font-weight: 800;
+  }
+}
+
+// ─── Members ──────────────────────────────────────────────────────────────────
+
+.memberList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-inline-size: 0;
+}
+
+.memberCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-inline-size: 0;
+  padding: 8px 10px;
+  background: #f8f7f1;
+  border: 2px solid #101214;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s;
+
+  &:hover {
+    background: #f7d71922;
+  }
+}
+
+.memberAvatar {
+  flex: 0 0 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  background: #101214;
+  border-radius: 999px;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 1000;
+}
+
+.memberInfo {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.memberName {
+  display: block;
+  color: #101214;
+  font-size: 13px;
+  font-weight: 900;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.memberRole {
+  display: block;
+  color: #5a5d63;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.memberChevron {
+  color: #5a5d63;
+  font-size: 18px;
+  font-weight: 300;
+}
+
+.emptyMembers {
+  margin: 0;
+  color: #5a5d63;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+// ─── KPIs ─────────────────────────────────────────────────────────────────────
+
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 10px;
+  min-inline-size: 0;
+}
+
+.kpiCard {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-inline-size: 0;
+  padding: 10px 12px;
+  background: #f8f7f1;
+  border: 2px solid #101214;
+  border-radius: 8px;
+}
+
+.kpiValue {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #101214;
+  font-size: 20px;
+  font-weight: 1000;
+  line-height: 1;
+}
+
+.kpiLabel {
+  overflow-wrap: anywhere;
+  color: #5a5d63;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.kpiCountryList {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.kpiCountryRow {
+  display: grid;
+  grid-template-columns: 36px 1fr 40px;
+  align-items: center;
+  gap: 8px;
+
+  &.kpiCountryComplete .kpiCountryCode {
+    color: #18a957;
+  }
+}
+
+.kpiCountryCode {
+  color: #101214;
+  font-size: 11px;
+  font-weight: 1000;
+}
+
+.kpiCountryBar {
+  height: 6px;
+  background: #e8e7e0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.kpiCountryBarFill {
+  height: 100%;
+  background: #b9e461;
+  border-radius: 999px;
+  transition: width 0.3s;
+}
+
+.kpiCountryStat {
+  color: #5a5d63;
+  font-size: 10px;
+  font-weight: 800;
+  text-align: right;
+}
+
+.verMasBtn {
+  width: 100%;
+  padding: 7px;
+  color: #5a5d63;
+  background: transparent;
+  border: 2px solid #e8e7e0;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+  text-align: center;
+
+  &:hover {
+    border-color: #101214;
+    color: #101214;
+  }
+}
+
+// ─── Panel header layout ──────────────────────────────────────────────────────
+
+.panelHeaderRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  min-inline-size: 0;
+}
+
+.clearSelectionBtn {
+  flex: 0 0 auto;
+  min-height: 30px;
+  padding: 0 12px;
+  color: #101214;
+  background: #ffffff;
+  border: 2px solid #101214;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+// ─── Sticker selection states ─────────────────────────────────────────────────
+
+.stickerSelected {
+  outline: 3px solid #2368c4;
+  outline-offset: 2px;
+  position: relative;
+}
+
+.stickerDisabled {
+  opacity: 0.34;
+}
+
+.checkmark {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  color: #2368c4;
+  font-size: 12px;
+  font-weight: 1000;
+  line-height: 1;
+}
+
+// ─── Bulk action bar ──────────────────────────────────────────────────────────
+
+.selectionActions {
+  position: fixed;
+  left: 50%;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: calc(100vw - 32px);
+  max-width: 560px;
+  min-inline-size: 0;
+  transform: translateX(-50%);
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 2px solid #101214;
+  border-radius: 999px;
+  box-shadow: 4px 5px 0 rgba(16, 18, 20, 0.18);
+}
+
+.selectionCount {
+  flex: 1;
+  color: #5a5d63;
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.selectionButtons {
+  display: flex;
+  gap: 6px;
+  min-inline-size: 0;
+}
+
+.bulkBtn {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 2px solid #101214;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 2px 2px 0 #101214;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.bulkBtn_primary {
+  color: #ffffff;
+  background: #2368c4;
+}
+
+.bulkBtn_yellow {
+  color: #101214;
+  background: #f7d719;
+}
+
+.bulkBtn_danger {
+  color: #ffffff;
+  background: #c51632;
+}
+
+// ─── Groups / segmented ───────────────────────────────────────────────────────
+
+.panelHeader {
+  display: grid;
+  gap: 5px;
+  margin-bottom: 18px;
+  min-inline-size: 0;
+
+  h2 {
+    margin: 0;
+    color: #101214;
+    font-size: 19px;
+    font-weight: 1000;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  > div {
+    min-inline-size: 0;
+  }
+
+  p,
+  span {
+    margin: 4px 0 0;
+    color: #5a5d63;
+    font-size: 12px;
+    font-weight: 800;
+  }
+}
+
+.segmented,
+.modeSwitch {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  min-inline-size: 0;
+  max-width: 100%;
+  padding: 2px 2px 8px;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.segBtn,
+.segBtnActive,
+.modeBtn,
+.modeBtnActive {
+  flex: 0 0 auto;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 2px solid #101214;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.segBtn,
+.modeBtn {
+  color: #101214;
+  background: #ffffff;
+}
+
+.segBtnActive {
+  color: #101214;
+  background: #ff6d00;
+}
+
+.modeBtnActive {
+  color: #ffffff;
+  background: #2368c4;
+}
+
+// ─── Sticker grid ─────────────────────────────────────────────────────────────
+
+.stickerGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px 12px;
+  min-inline-size: 0;
+}
+
+.sticker {
+  display: grid;
+  grid-template-rows: auto auto auto;
+  gap: 5px;
+  min-inline-size: 0;
+  min-height: 82px;
+  padding: 9px;
+  color: #101214;
+  background: #ffffff;
+  border: 2px solid #101214;
+  border-radius: 999px;
+  cursor: pointer;
+  text-align: center;
+  user-select: none;
+  position: relative;
+  box-shadow: 3px 3px 0 rgba(16, 18, 20, 0.14);
+  transition: transform 0.08s, box-shadow 0.08s, opacity 0.12s, background 0.12s;
+
+  &:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 rgba(16, 18, 20, 0.2);
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.stickerReadOnly {
+  cursor: default;
+
+  &:hover {
+    transform: none;
+    box-shadow: 3px 3px 0 rgba(16, 18, 20, 0.14);
+  }
+
+  &:active {
+    transform: none;
+  }
+}
+
+.sticker_no_tengo {
+  background: #ffffff;
+}
+
+.sticker_tengo {
+  background: #fff3cd;
+}
+
+.sticker_pegado {
+  background: #b9e461;
+}
+
+.busy {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.stickerCode {
+  align-self: end;
+  color: #101214;
+  font-size: 14px;
+  font-weight: 1000;
+  line-height: 1;
+}
+
+.stickerMeta {
+  color: #2368c4;
+  font-size: 10px;
+  font-weight: 1000;
+  line-height: 1;
+}
+
+.label_no_tengo,
+.label_tengo,
+.label_pegado {
+  justify-self: center;
+  padding: 3px 7px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 1000;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.label_no_tengo {
+  color: #ffffff;
+  background: #c51632;
+}
+
+.label_tengo {
+  color: #101214;
+  background: #f7d719;
+}
+
+.label_pegado {
+  color: #ffffff;
+  background: #18a957;
+}
+
+.empty {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 42px 16px;
+  color: #101214;
+  text-align: center;
+  font-weight: 900;
+}
+
+// ─── Modals ───────────────────────────────────────────────────────────────────
 
 .overlay {
   position: fixed;
@@ -96,7 +699,8 @@
 }
 
 .modal {
-  width: min(100%, 440px);
+  width: 100%;
+  max-width: 440px;
   padding: 24px 20px;
   background: rgba(255, 255, 255, 0.98);
   border: 2px solid #101214;
@@ -110,6 +714,15 @@
     font-weight: 1000;
     text-transform: uppercase;
   }
+}
+
+.fieldLabel {
+  display: block;
+  margin-bottom: 6px;
+  color: #101214;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
 .inviteHint {
@@ -197,207 +810,51 @@
   box-shadow: 3px 3px 0 #101214;
 }
 
-.workspace {
-  display: grid;
-  gap: 12px;
-  padding: 12px;
+.removeMemberBtn {
+  color: #ffffff !important;
+  background: #c51632 !important;
+  box-shadow: 3px 3px 0 #101214;
 }
 
-.sidebar,
-.mainPanel {
-  background: rgba(255, 255, 255, 0.96);
-  border: 2px solid #101214;
-  border-radius: 8px;
-  box-shadow: 5px 5px 0 rgba(16, 18, 20, 0.16);
-}
-
-.sidebar {
-  display: grid;
-  gap: 12px;
-  padding: 14px;
-}
-
-.mainPanel {
-  min-width: 0;
-  padding: 14px;
-}
-
-.panelHeader {
-  display: grid;
-  gap: 5px;
-  margin-bottom: 0;
-
-  h2 {
-    margin: 0;
-    color: #101214;
-    font-size: 19px;
-    font-weight: 1000;
-    line-height: 1;
-    text-transform: uppercase;
-  }
-
-  p,
-  span {
-    margin: 4px 0 0;
-    color: #5a5d63;
-    font-size: 12px;
-    font-weight: 800;
-  }
-}
-
-.segmented,
-.modeSwitch {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  padding: 2px 2px 6px;
-  scrollbar-width: none;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
-}
-
-.segBtn,
-.segBtnActive,
-.modeBtn,
-.modeBtnActive {
+.inviteBtn {
   flex: 0 0 auto;
-  min-height: 34px;
-  padding: 0 11px;
+  min-height: 30px;
+  padding: 0 10px;
+  color: #101214;
+  background: #f7d719;
   border: 2px solid #101214;
-  border-radius: 999px;
-  font-size: 12px;
+  border-radius: 7px;
+  box-shadow: 3px 3px 0 #101214;
+  font-size: 11px;
   font-weight: 900;
   cursor: pointer;
+  white-space: nowrap;
 }
 
-.segBtn,
-.modeBtn {
-  color: #101214;
-  background: #ffffff;
-}
-
-.segBtnActive {
-  color: #101214;
-  background: #ff6d00;
-}
-
-.modeBtnActive {
-  color: #ffffff;
-  background: #2368c4;
-}
-
-.stickerGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
-  gap: 8px;
-}
-
-.sticker {
-  display: grid;
-  grid-template-rows: auto auto auto;
-  gap: 5px;
-  min-height: 82px;
-  padding: 9px;
-  color: #101214;
-  background: #ffffff;
-  border: 2px solid #101214;
-  border-radius: 999px;
-  cursor: pointer;
-  text-align: center;
-  user-select: none;
-  box-shadow: 3px 3px 0 rgba(16, 18, 20, 0.14);
-  transition: transform 0.08s, box-shadow 0.08s, opacity 0.12s, background 0.12s;
-
-  &:hover {
-    transform: translate(-1px, -1px);
-    box-shadow: 4px 4px 0 rgba(16, 18, 20, 0.2);
-  }
-
-  &:active {
-    transform: scale(0.97);
-  }
-}
-
-.owned {
-  background: #b9e461;
-}
-
-.busy {
-  opacity: 0.55;
-  pointer-events: none;
-}
-
-.stickerCode {
-  align-self: end;
-  color: #101214;
-  font-size: 14px;
-  font-weight: 1000;
-  line-height: 1;
-}
-
-.stickerMeta {
-  color: #2368c4;
-  font-size: 10px;
-  font-weight: 1000;
-  line-height: 1;
-}
-
-.labelOwned,
-.labelMissing {
-  justify-self: center;
-  padding: 3px 7px;
-  border-radius: 999px;
-  font-size: 9px;
-  font-weight: 1000;
-  line-height: 1;
-  text-transform: uppercase;
-}
-
-.labelOwned {
-  color: #ffffff;
-  background: #18a957;
-}
-
-.labelMissing {
-  color: #ffffff;
-  background: #c51632;
-}
-
-.empty {
-  grid-column: 1 / -1;
-  margin: 0;
-  padding: 42px 16px;
-  color: #101214;
-  text-align: center;
-  font-weight: 900;
-}
+// ─── Desktop ──────────────────────────────────────────────────────────────────
 
 @media (min-width: 760px) {
   .header {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    min-height: 64px;
+    grid-template-columns: auto 1fr;
+    min-height: 60px;
     padding: 0 clamp(20px, 4vw, 48px);
   }
 
-  .progress {
-    grid-column: auto;
-  }
-
   .workspace {
-    grid-template-columns: minmax(260px, 330px) 1fr;
+    grid-template-columns: 330px 1fr;
     gap: 20px;
     padding: 20px clamp(20px, 4vw, 48px);
   }
 
   .sidebar {
     position: sticky;
-    top: 84px;
+    top: 80px;
+    max-height: calc(100svh - 100px);
+    overflow-y: auto;
+    scrollbar-width: thin;
   }
 
-  .mainPanel,
-  .sidebar {
+  .mainPanel {
     padding: 18px;
   }
 
@@ -407,8 +864,18 @@
     justify-content: space-between;
   }
 
+  .selectionActions {
+    width: min(560px, calc(100vw - 48px));
+  }
+
   .stickerGrid {
-    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    grid-template-columns: repeat(5, 1fr);
     gap: 10px;
+  }
+}
+
+@media (min-width: 1040px) {
+  .stickerGrid {
+    grid-template-columns: repeat(7, 1fr);
   }
 }

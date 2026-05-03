@@ -1,5 +1,12 @@
 .dropdown {
   position: relative;
+  width: 100%;
+  min-inline-size: 0;
+  z-index: 1;
+}
+
+.dropdownOpen {
+  z-index: 60;
 }
 
 .trigger {
@@ -8,6 +15,7 @@
   gap: 3px 10px;
   align-items: center;
   width: 100%;
+  min-inline-size: 0;
   min-height: 58px;
   padding: 9px 12px;
   color: #101214;
@@ -19,7 +27,7 @@
   text-align: left;
 
   strong {
-    min-width: 0;
+    min-inline-size: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -54,7 +62,8 @@
   top: calc(100% + 10px);
   left: 0;
   right: 0;
-  z-index: 20;
+  z-index: 70;
+  min-inline-size: 0;
   padding: 10px;
   background: #ffffff;
   border: 2px solid #101214;
@@ -87,6 +96,7 @@
   margin-top: 10px;
   overflow-y: auto;
   padding-right: 2px;
+  min-inline-size: 0;
 }
 
 .option,
@@ -96,6 +106,7 @@
   gap: 3px 9px;
   align-items: center;
   width: 100%;
+  min-inline-size: 0;
   min-height: 58px;
   padding: 8px;
   border: 2px solid #101214;
@@ -107,7 +118,7 @@
     display: grid;
     place-items: center;
     grid-row: span 2;
-    min-width: 52px;
+    width: 52px;
     height: 34px;
     padding: 0 8px;
     color: #101214;
@@ -118,7 +129,7 @@
   }
 
   strong {
-    min-width: 0;
+    min-inline-size: 0;
     color: inherit;
     font-size: 14px;
     font-weight: 1000;

@@ -65,7 +65,7 @@ export function TeamCodeDropdown({
   };
 
   return (
-    <div className={styles.dropdown} ref={rootRef}>
+    <div className={open ? `${styles.dropdown} ${styles.dropdownOpen}` : styles.dropdown} ref={rootRef}>
       <button
         type="button"
         className={styles.trigger}

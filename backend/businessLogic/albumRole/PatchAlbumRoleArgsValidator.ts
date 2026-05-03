@@ -4,7 +4,7 @@ import type { PatchAlbumRoleArgs } from "./PatchAlbumRoleArgs";
 const schema = z.object({
   name: z.string().min(1, "name must not be empty").optional(),
   permissionIds: z
-    .array(z.string().uuid("each permissionId must be a valid UUID"))
+    .array(z.string().min(1, "each permissionId is required"))
     .min(1, "permissionIds must not be empty")
     .optional(),
 });

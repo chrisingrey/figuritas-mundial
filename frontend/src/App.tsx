@@ -4,6 +4,7 @@ import Auth from "@/layouts/Auth";
 import Home from "@/layouts/Home";
 import Album from "@/layouts/Album";
 import AcceptInvitation from "@/layouts/AcceptInvitation";
+import SharedAlbum from "@/layouts/SharedAlbum";
 import type { ReactNode } from "react";
 
 const REDIRECT_KEY = "fwc_redirect";
@@ -69,6 +70,7 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route path="/shared/:shareToken" element={<SharedAlbum />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

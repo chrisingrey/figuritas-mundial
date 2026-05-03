@@ -5,6 +5,7 @@ export interface Album {
   name: string;
   ownerId: string;
   stickers: AlbumSticker[];
+  shareToken?: string;
   createdAt: Date;
   updatedAt: Date;
 }

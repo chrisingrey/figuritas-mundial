@@ -1,0 +1,213 @@
+.page {
+  min-height: 100svh;
+  background:
+    radial-gradient(circle at 100% 0, rgba(255, 109, 0, 0.14), transparent 28%),
+    linear-gradient(90deg, rgba(41, 183, 184, 0.2) 0 12px, transparent 12px calc(100% - 12px), rgba(177, 23, 45, 0.2) calc(100% - 12px)),
+    #f8f7f1;
+}
+
+.center {
+  display: grid;
+  place-items: center;
+  min-height: 100svh;
+  color: #101214;
+  font-size: 15px;
+  font-weight: 900;
+  padding: 24px;
+  text-align: center;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 2px solid #101214;
+}
+
+.headerInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.albumName {
+  color: #101214;
+  font-size: 15px;
+  font-weight: 1000;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badge {
+  flex: 0 0 auto;
+  padding: 3px 8px;
+  color: #5a5d63;
+  background: #e8e7e0;
+  border: 2px solid #101214;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.progress {
+  flex: 0 0 auto;
+  padding: 5px 9px;
+  color: #101214;
+  background: #b9e461;
+  border: 2px solid #101214;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.body {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.segmented,
+.modeSwitch {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 2px 2px 4px;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.segBtn,
+.segBtnActive,
+.modeBtn,
+.modeBtnActive {
+  flex: 0 0 auto;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 2px solid #101214;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.segBtn,
+.modeBtn {
+  color: #101214;
+  background: #ffffff;
+}
+
+.segBtnActive {
+  color: #101214;
+  background: #ff6d00;
+}
+
+.modeBtnActive {
+  color: #ffffff;
+  background: #2368c4;
+}
+
+.stickerGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+  gap: 8px;
+}
+
+.sticker {
+  display: grid;
+  grid-template-rows: auto auto auto;
+  gap: 5px;
+  min-height: 82px;
+  padding: 9px;
+  color: #101214;
+  border: 2px solid #101214;
+  border-radius: 999px;
+  text-align: center;
+  box-shadow: 3px 3px 0 rgba(16, 18, 20, 0.14);
+}
+
+.sticker_no_tengo { background: #ffffff; }
+.sticker_tengo    { background: #fff3cd; }
+.sticker_pegado   { background: #b9e461; }
+
+.stickerCode {
+  align-self: end;
+  color: #101214;
+  font-size: 14px;
+  font-weight: 1000;
+  line-height: 1;
+}
+
+.stickerMeta {
+  color: #2368c4;
+  font-size: 10px;
+  font-weight: 1000;
+  line-height: 1;
+}
+
+.label_no_tengo,
+.label_tengo,
+.label_pegado {
+  justify-self: center;
+  padding: 3px 7px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 1000;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.label_no_tengo { color: #ffffff; background: #c51632; }
+.label_tengo    { color: #101214; background: #f7d719; }
+.label_pegado   { color: #ffffff; background: #18a957; }
+
+.empty {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 42px 16px;
+  color: #101214;
+  text-align: center;
+  font-weight: 900;
+}
+
+@media (min-width: 760px) {
+  .header {
+    min-height: 60px;
+    padding: 0 clamp(20px, 4vw, 48px);
+  }
+
+  .body {
+    padding: 20px clamp(20px, 4vw, 48px);
+  }
+
+  .controls {
+    flex-direction: row;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .stickerGrid {
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: 10px;
+  }
+}

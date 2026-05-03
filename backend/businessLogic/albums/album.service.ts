@@ -6,13 +6,12 @@ import type { CreateAlbumArgs } from "./CreateAlbumArgs";
 import { validateCreateAlbumArgs } from "./CreateAlbumArgsValidator";
 import type { UpdateAlbumArgs } from "./UpdateAlbumArgs";
 import { validateUpdateAlbumArgs } from "./UpdateAlbumArgsValidator";
-import type { ToggleStickerArgs } from "./ToggleStickerArgs";
-import { validateToggleStickerArgs } from "./ToggleStickerArgsValidator";
 import type { AlbumRole } from "@businessLogic/albumRole";
 import type { Member } from "@businessLogic/members";
-import type { Permission } from "@businessLogic/permissions";
+import { PermissionName, type Permission } from "@businessLogic/permissions";
 import { MemberStatus } from "@businessLogic/members";
 import { generateAlbumStickers, ALL_STICKER_CODES } from "./stickerTemplate";
+import { STICKER_STATUSES, type StickerStatus } from "./AlbumSticker";
 
 export class AlbumService implements IAlbumService {
   constructor(
@@ -30,6 +29,40 @@ export class AlbumService implements IAlbumService {
     return this.albumRepository.getOrDefaultAsync(
       (a: Album) => a.ownerId === userId,
     );
+  }
+
+  async getAlbumByShareToken(token: string): Promise<Album | null> {
+    return this.albumRepository.getOrDefaultAsync(
+      (a: Album) => a.shareToken === token,
+    );
+  }
+
+  async bulkSetStickerStatus(albumId: string, codes: string[], status: StickerStatus): Promise<Album> {
+    if (!STICKER_STATUSES.includes(status)) {
+      throw new AppError(400, ErrorCode.INVALID_STICKER_CODE, `Sticker status '${status}' does not exist.`);
+    }
+
+    const normalizedCodes = [...new Set(codes.map(code => code.trim()).filter(Boolean))];
+    if (normalizedCodes.length === 0) {
+      throw new AppError(400, ErrorCode.INVALID_STICKER_CODE, "No codes provided.");
+    }
+
+    const codeSet = new Set(normalizedCodes);
+    for (const code of normalizedCodes) {
+      if (!ALL_STICKER_CODES.has(code)) {
+        throw new AppError(400, ErrorCode.INVALID_STICKER_CODE, `Sticker code '${code}' does not exist.`);
+      }
+    }
+
+    const album = await this.albumRepository.getAsync((a: Album) => a.id === albumId);
+    const updatedStickers = album.stickers.map(s =>
+      codeSet.has(s.code) ? { ...s, status, owned: status !== "no_tengo" } : s,
+    );
+
+    return this.albumRepository.patchByIdAndSaveAsync(albumId, {
+      stickers: updatedStickers,
+      updatedAt: new Date(),
+    });
   }
 
   async createAlbum(args: CreateAlbumArgs): Promise<Album> {
@@ -59,6 +92,20 @@ export class AlbumService implements IAlbumService {
       permissions: allPermissions,
     });
 
+    const viewAlbumPermission = allPermissions.find(
+      (permission) => permission.name === PermissionName.GET_BY_ID_ALBUM,
+    );
+    if (!viewAlbumPermission) {
+      throw new AppError(500, ErrorCode.INTERNAL_ERROR, "View album permission is not configured.");
+    }
+
+    await this.albumRoleRepository.createAndSaveAsync({
+      id: crypto.randomUUID(),
+      albumId: album.id,
+      name: "Viewer",
+      permissions: [viewAlbumPermission],
+    });
+
     await this.memberRepository.createAndSaveAsync({
       id: crypto.randomUUID(),
       albumId: album.id,
@@ -79,28 +126,6 @@ export class AlbumService implements IAlbumService {
 
     return this.albumRepository.patchByIdAndSaveAsync(id, {
       name: validation.data.name,
-      updatedAt: new Date(),
-    });
-  }
-
-  async toggleSticker(args: ToggleStickerArgs): Promise<Album> {
-    const validation = validateToggleStickerArgs(args);
-    if (!validation.success) {
-      throw new AppError(400, ErrorCode.INVALID_STICKER_CODE, `Validation failed: ${validation.errors.join(", ")}`);
-    }
-
-    if (!ALL_STICKER_CODES.has(args.code)) {
-      throw new AppError(400, ErrorCode.INVALID_STICKER_CODE, `Sticker code '${args.code}' does not exist.`);
-    }
-
-    const album = await this.albumRepository.getAsync((a: Album) => a.id === args.albumId);
-
-    const updatedStickers = album.stickers.map(s =>
-      s.code === args.code ? { ...s, owned: !s.owned } : s,
-    );
-
-    return this.albumRepository.patchByIdAndSaveAsync(args.albumId, {
-      stickers: updatedStickers,
       updatedAt: new Date(),
     });
   }

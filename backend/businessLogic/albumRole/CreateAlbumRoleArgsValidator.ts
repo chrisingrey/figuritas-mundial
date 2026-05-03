@@ -3,7 +3,7 @@ import type { CreateAlbumRoleArgs } from "./CreateAlbumRoleArgs";
 
 const schema = z.object({
   name: z.string().min(1, "name is required"),
-  permissionIds: z.array(z.string().uuid("each permissionId must be a valid UUID")).min(1, "at least one permission is required"),
+  permissionIds: z.array(z.string().min(1, "each permissionId is required")).min(1, "at least one permission is required"),
 });
 
 export type ValidationResult =

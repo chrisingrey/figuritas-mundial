@@ -13,6 +13,10 @@ export const albumsService = {
     return api.get<AlbumResponse>(`/${albumId}`);
   },
 
+  async getSharedAlbum(shareToken: string): Promise<AlbumResponse> {
+    return api.get<AlbumResponse>(`/shared/${shareToken}`);
+  },
+
   async getRoles(albumId: string): Promise<AlbumRoleResponse[]> {
     return api.get<AlbumRoleResponse[]>(`/${albumId}/roles`);
   },
@@ -25,12 +29,24 @@ export const albumsService = {
     return api.get<MemberResponse[]>(`/${albumId}/members`);
   },
 
+  async updateMemberRole(albumId: string, memberId: string, roleId: string): Promise<MemberResponse> {
+    return api.patch<{ roleId: string }, MemberResponse>({ roleId }, `/${albumId}/members/${memberId}`);
+  },
+
+  async removeMember(albumId: string, memberId: string): Promise<void> {
+    await api.delete(`/${albumId}/members/${memberId}`);
+  },
+
   async inviteMember(albumId: string, request: InviteMemberRequest): Promise<void> {
     await api.post<InviteMemberRequest, unknown>(request, `/${albumId}/member-invites`);
   },
 
-  async toggleSticker(albumId: string, code: string): Promise<AlbumResponse> {
-    return api.patch<Record<string, never>, AlbumResponse>({}, `/${albumId}/stickers/${encodeURIComponent(code)}`);
+  async bulkUpdateStickers(albumId: string, codes: string[], status: import("./models").StickerStatus): Promise<AlbumResponse> {
+    return api.patch<{ codes: string[]; status: string }, AlbumResponse>({ codes, status }, `/${albumId}/stickers`);
+  },
+
+  async shareAlbum(albumId: string, invitedEmail: string): Promise<InvitationResponse> {
+    return api.post<{ invitedEmail: string }, InvitationResponse>({ invitedEmail }, `/${albumId}/share`);
   },
 
   async getInvitation(albumId: string, invitationId: string): Promise<InvitationResponse> {

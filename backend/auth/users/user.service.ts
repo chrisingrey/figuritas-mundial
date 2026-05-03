@@ -26,6 +26,12 @@ export class UserService implements IUserService {
     private readonly notificationService?: INotificationService,
   ) {}
 
+  async getByEmail(email: string): Promise<User | null> {
+    return this.userRepository.getOrDefaultAsync((u) =>
+      caseInsensitiveCompare(u.email, email),
+    );
+  }
+
   async register(args: RegisterArgs): Promise<void> {
     const firebaseIdToken = args.firebaseIdToken ?? args.googleIdToken;
     args = firebaseIdToken

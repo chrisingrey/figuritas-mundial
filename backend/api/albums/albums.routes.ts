@@ -7,7 +7,9 @@ import {
   getMyAlbum,
   getAlbum,
   updateAlbum,
-  toggleSticker,
+  bulkUpdateStickers,
+  shareAlbumWithViewer,
+  getSharedAlbum,
   getRoles,
   createRole,
   patchRole,
@@ -23,6 +25,9 @@ import {
 
 const router = Router();
 
+// ─── Public shared album (no auth required) ──────────────────────────────
+router.get("/shared/:shareToken", getSharedAlbum);
+
 // ─── Public album endpoints (auth only, no member scope) ─────────────────
 router.post("/", userAuthenticationFilter, createAlbum);
 router.get("/my", userAuthenticationFilter, getMyAlbum);
@@ -31,8 +36,11 @@ router.get("/my", userAuthenticationFilter, getMyAlbum);
 router.get("/:albumId", userAuthenticationFilter, memberAuthorizationFilter(":albumId", PermissionName.GET_BY_ID_ALBUM), getAlbum);
 router.patch("/:albumId", userAuthenticationFilter, memberAuthorizationFilter(":albumId", PermissionName.UPDATE_BY_ID_ALBUM), updateAlbum);
 
+// Share
+router.post("/:albumId/share", userAuthenticationFilter, memberAuthorizationFilter(":albumId", PermissionName.CREATE_ALBUM_INVITATION), shareAlbumWithViewer);
+
 // Stickers
-router.patch("/:albumId/stickers/:code", userAuthenticationFilter, memberAuthorizationFilter(":albumId", PermissionName.GET_BY_ID_ALBUM), toggleSticker);
+router.patch("/:albumId/stickers", userAuthenticationFilter, memberAuthorizationFilter(":albumId", PermissionName.UPDATE_BY_ID_ALBUM), bulkUpdateStickers);
 
 // Roles
 router.get("/:albumId/roles", userAuthenticationFilter, memberAuthorizationFilter(":albumId", PermissionName.GET_ALL_ALBUM_ROLE), getRoles);

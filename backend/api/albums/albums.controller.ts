@@ -10,6 +10,10 @@ import { mapAlbumInvitationResponse } from "./AlbumInvitationResponse";
 import type { CreateAlbumArgs } from "@businessLogic/albums";
 import type { CreateAlbumRoleArgs, PatchAlbumRoleArgs } from "@businessLogic/albumRole";
 import type { UpdateMemberRoleArgs } from "@businessLogic/members";
+import { PermissionName } from "@businessLogic/permissions";
+import { AppError, ErrorCode } from "@errors";
+
+const VIEWER_ROLE_NAME = "Viewer";
 
 // ─── Album CRUD ──────────────────────────────────────────────────────────
 
@@ -143,16 +147,91 @@ export const removeMember = asyncHandler(async (
   res.status(204).send();
 });
 
-// ─── Stickers ────────────────────────────────────────────────────────────────
+// ─── Share ───────────────────────────────────────────────────────────────────
 
-export const toggleSticker = asyncHandler(async (
+export const shareAlbumWithViewer = asyncHandler(async (
   req: Request,
   res: Response,
   _next: NextFunction,
 ) => {
   const { albumId } = toAuthorizedMemberRequest(req).authorizedMember;
-  const { code } = req.params;
-  const album = await services.albumService.toggleSticker({ albumId, code });
+  const invitedByUserId = getAuthenticatedUserId(req);
+  const { invitedEmail } = req.body as { invitedEmail?: string };
+
+  if (typeof invitedEmail !== "string" || invitedEmail.trim().length === 0) {
+    throw new AppError(400, ErrorCode.INVALID_INVITATION_DATA, "invitedEmail is required.");
+  }
+
+  const normalizedEmail = invitedEmail.trim().toLowerCase();
+  const invitedUser = await services.userService.getByEmail(normalizedEmail);
+  if (!invitedUser) {
+    throw new AppError(404, ErrorCode.RESOURCE_NOT_FOUND, "User not found in the platform.");
+  }
+
+  const role = await getOrCreateViewerRole(albumId);
+  const invitation = await services.albumInviteService.inviteMember({
+    albumId,
+    invitedByUserId,
+    invitedEmail: normalizedEmail,
+    roleId: role.id,
+  });
+
+  res.status(201).json(mapAlbumInvitationResponse(invitation));
+});
+
+export const getSharedAlbum = asyncHandler(async (
+  req: Request,
+  res: Response,
+  _next: NextFunction,
+) => {
+  const { shareToken } = req.params;
+  const album = await services.albumService.getAlbumByShareToken(shareToken);
+  if (!album) {
+    res.status(404).json({ message: "Album no encontrado." });
+    return;
+  }
+  res.status(200).json(mapAlbumResponse(album));
+});
+
+async function getOrCreateViewerRole(albumId: string) {
+  const roles = await services.albumRoleService.getRoles(albumId);
+  const existingViewerRole = roles.find((role) =>
+    role.name.toLowerCase() === VIEWER_ROLE_NAME.toLowerCase() &&
+    role.permissions.length === 1 &&
+    role.permissions[0]?.name === PermissionName.GET_BY_ID_ALBUM,
+  );
+
+  if (existingViewerRole) return existingViewerRole;
+
+  const permissions = await services.albumRoleService.getAlbumPermissions();
+  const viewAlbumPermission = permissions.find((permission) =>
+    permission.name === PermissionName.GET_BY_ID_ALBUM,
+  );
+
+  if (!viewAlbumPermission) {
+    throw new AppError(500, ErrorCode.INTERNAL_ERROR, "View album permission is not configured.");
+  }
+
+  return services.albumRoleService.createRole(albumId, {
+    name: VIEWER_ROLE_NAME,
+    permissionIds: [viewAlbumPermission.id],
+  });
+}
+
+// ─── Stickers ────────────────────────────────────────────────────────────────
+
+export const bulkUpdateStickers = asyncHandler(async (
+  req: Request,
+  res: Response,
+  _next: NextFunction,
+) => {
+  const { albumId } = toAuthorizedMemberRequest(req).authorizedMember;
+  const { codes, status } = req.body as { codes: string[]; status: string };
+  if (!Array.isArray(codes) || codes.some(code => typeof code !== "string") || typeof status !== "string") {
+    res.status(400).json({ message: "Invalid body: codes (string array) and status (string) required." });
+    return;
+  }
+  const album = await services.albumService.bulkSetStickerStatus(albumId, codes, status as import("@businessLogic/albums/AlbumSticker").StickerStatus);
   res.status(200).json(mapAlbumResponse(album));
 });
 
