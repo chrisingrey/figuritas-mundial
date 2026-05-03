@@ -1,4 +1,5 @@
 import { useState } from "react";
+import axios from "axios";
 import { FirebaseError } from "firebase/app";
 import { useNavigate } from "react-router-dom";
 import { authService } from "@backend";
@@ -12,7 +13,37 @@ import styles from "./index.module.scss";
 
 type Mode = "login" | "register";
 
+function getApiErrorMessage(error: unknown): string | null {
+  if (!axios.isAxiosError(error)) return null;
+
+  const status = error.response?.status;
+  const data = error.response?.data;
+
+  if (status === 500) {
+    return "La API tuvo un error interno. Revisá los logs de Vercel del backend.";
+  }
+
+  if (typeof data === "object" && data && "message" in data && typeof data.message === "string") {
+    return data.message;
+  }
+
+  if (typeof data === "string") {
+    return status
+      ? `La API respondió ${status}. Revisá los logs del backend.`
+      : "No se pudo conectar con la API.";
+  }
+
+  if (!error.response) {
+    return "No se pudo conectar con la API. Revisá VITE_API_URL y CORS.";
+  }
+
+  return status ? `La API respondió ${status}.` : "No se pudo completar la solicitud.";
+}
+
 function getAuthErrorMessage(error: unknown, mode: Mode): string {
+  const apiMessage = getApiErrorMessage(error);
+  if (apiMessage) return apiMessage;
+
   if (error instanceof FirebaseError) {
     if (error.code === "auth/configuration-not-found") {
       return "Firebase Auth no esta activado o la API key no pertenece a este proyecto.";

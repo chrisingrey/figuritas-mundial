@@ -15,6 +15,10 @@ function isAxiosUnauthorized(err: unknown): boolean {
   return axios.isAxiosError(err) && err.response?.status === 401;
 }
 
+function isAxiosNotFound(err: unknown): boolean {
+  return axios.isAxiosError(err) && err.response?.status === 404;
+}
+
 function createFirebaseTokenPayload(firebaseIdToken: string): FirebaseTokenPayload {
   return {
     firebaseIdToken,
@@ -42,7 +46,7 @@ export const authService = {
     try {
       response = await api.post<FirebaseTokenPayload, LoginResponse>(payload, "/login");
     } catch (err) {
-      if (!isAxiosUnauthorized(err)) throw err;
+      if (!isAxiosUnauthorized(err) && !isAxiosNotFound(err)) throw err;
       await api.post<FirebaseTokenPayload, void>(payload, "/register");
       response = await api.post<FirebaseTokenPayload, LoginResponse>(payload, "/login");
     }
