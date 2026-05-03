@@ -9,7 +9,6 @@ import { meRouter } from "@api/me/me.routes";
 import { verificationRouter } from "@api/verifications/verification.routes";
 import { albumsRouter } from "@api/albums/albums.routes";
 import { worldCupAlbumRouter } from "@api/worldCupAlbum/worldCupAlbum.routes";
-import { healthRouter } from "@api/health/health.routes";
 
 export async function initializeApp(app: Application): Promise<void> {
   const messagingService = await connectMessagingService();
@@ -27,7 +26,6 @@ async function seedData(): Promise<void> {
 
 function registerRoutes(app: Application): void {
   const api = Router();
-  api.use("/health", healthRouter);
   api.use("/auth", authRouter);
   api.use("/me", meRouter);
   api.use("/verifications", verificationRouter);

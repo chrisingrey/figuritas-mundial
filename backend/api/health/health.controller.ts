@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import type { Request, Response, NextFunction } from "express";
-import { services } from "@api/config/services.config";
-import { asyncHandler } from "@api/common/middleware/asyncHandler";
+import { MongoClient } from "mongodb";
+import nodemailer from "nodemailer";
 
 type HealthStatus = "ok" | "degraded" | "down";
 
@@ -22,8 +22,9 @@ interface HealthResponse {
 }
 
 const EMAIL_HEALTH_TIMEOUT_MS = 4000;
+const DATABASE_HEALTH_TIMEOUT_MS = 4000;
 
-export const getHealth = asyncHandler(async (
+export const getHealth = async (
   _req: Request,
   res: Response,
   _next: NextFunction,
@@ -51,37 +52,69 @@ export const getHealth = asyncHandler(async (
   };
 
   res.status(status === "ok" ? 200 : 503).json(response);
-});
+};
 
 async function checkDatabase(): Promise<DependencyHealth> {
-  if (mongoose.connection.readyState !== 1) {
+  if (mongoose.connection.readyState === 1) {
+    try {
+      await mongoose.connection.db?.admin().ping();
+      return { status: "ok" };
+    } catch {
+      return {
+        status: "down",
+        message: "MongoDB ping failed.",
+      };
+    }
+  }
+
+  const databaseUrl = process.env.DATABASE_URL?.trim();
+  if (!databaseUrl) {
     return {
       status: "down",
-      message: "MongoDB connection is not ready.",
+      message: "DATABASE_URL is not configured.",
     };
   }
 
+  const client = new MongoClient(databaseUrl);
   try {
-    await mongoose.connection.db?.admin().ping();
+    await withTimeout(client.connect(), DATABASE_HEALTH_TIMEOUT_MS);
+    await withTimeout(
+      client.db(process.env.DATABASE_NAME ?? "figuritas-mundial").admin().ping(),
+      DATABASE_HEALTH_TIMEOUT_MS,
+    );
     return { status: "ok" };
   } catch {
     return {
       status: "down",
       message: "MongoDB ping failed.",
     };
+  } finally {
+    await client.close().catch(() => undefined);
   }
 }
 
 async function checkEmail(): Promise<DependencyHealth> {
-  try {
-    const healthy = await withTimeout(
-      services.messagingService.verifyConnection(),
-      EMAIL_HEALTH_TIMEOUT_MS,
-    );
+  const gmailUser = process.env.GMAIL_USER?.trim();
+  const gmailAppPassword = process.env.GMAIL_APP_PASSWORD?.trim();
 
-    return healthy
-      ? { status: "ok" }
-      : { status: "down", message: "Email service verification failed." };
+  if (!gmailUser || !gmailAppPassword) {
+    return {
+      status: "down",
+      message: "GMAIL_USER or GMAIL_APP_PASSWORD is not configured.",
+    };
+  }
+
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: gmailUser,
+      pass: gmailAppPassword,
+    },
+  });
+
+  try {
+    await withTimeout(transporter.verify(), EMAIL_HEALTH_TIMEOUT_MS);
+    return { status: "ok" };
   } catch {
     return {
       status: "down",
