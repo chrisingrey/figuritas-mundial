@@ -1,4 +1,4 @@
-import express from "express";
+import express, { type NextFunction, type Request, type Response } from "express";
 import dotenv from "dotenv";
 import path from "path";
 import { corsHandler } from "./common/middleware/corsHandler";
@@ -23,6 +23,7 @@ app.use(async (_req, _res, next) => {
     next(error);
   }
 });
+app.use(bootstrapErrorHandler);
 
 function ensureInitialized(): Promise<void> {
   if (initialized) return Promise.resolve();
@@ -39,6 +40,29 @@ function ensureInitialized(): Promise<void> {
 export async function bootstrapApp(): Promise<typeof app> {
   await ensureInitialized();
   return app;
+}
+
+function bootstrapErrorHandler(
+  err: unknown,
+  _req: Request,
+  res: Response,
+  _next: NextFunction,
+): void {
+  console.error("API bootstrap failed:", err);
+
+  const error = err instanceof Error ? err : null;
+  const statusCode = typeof err === "object" && err !== null && "statusCode" in err && typeof err.statusCode === "number"
+    ? err.statusCode
+    : 500;
+  const code = typeof err === "object" && err !== null && "code" in err && typeof err.code === "string"
+    ? err.code
+    : "INTERNAL_ERROR";
+
+  res.status(statusCode).json({
+    error_code: code,
+    code,
+    message: error?.message ?? "An unexpected internal error occurred.",
+  });
 }
 
 export default app;
