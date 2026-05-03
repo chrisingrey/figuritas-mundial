@@ -30,11 +30,27 @@ function resolveServiceAccountPath(): string | null {
 function resolveServiceAccount(): admin.ServiceAccount | null {
   const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
   if (serviceAccountJson) {
-    return JSON.parse(serviceAccountJson) as admin.ServiceAccount;
+    return parseServiceAccountJson(serviceAccountJson);
   }
 
   const serviceAccountPath = resolveServiceAccountPath();
   if (!serviceAccountPath) return null;
 
   return JSON.parse(fs.readFileSync(serviceAccountPath, "utf8")) as admin.ServiceAccount;
+}
+
+function parseServiceAccountJson(value: string): admin.ServiceAccount {
+  const trimmedValue = value.trim();
+
+  try {
+    return JSON.parse(trimmedValue) as admin.ServiceAccount;
+  } catch {
+    const parsedString = JSON.parse(`"${trimmedValue
+      .replace(/\\/g, "\\\\")
+      .replace(/"/g, '\\"')
+      .replace(/\n/g, "\\n")
+      .replace(/\r/g, "\\r")}"`);
+
+    return JSON.parse(parsedString) as admin.ServiceAccount;
+  }
 }

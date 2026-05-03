@@ -141,7 +141,18 @@
       }
 
       fetch("/api/health")
-        .then((response) => response.json())
+        .then(async (response) => {
+          const contentType = response.headers.get("content-type") || "";
+          const body = contentType.includes("application/json")
+            ? await response.json()
+            : { status: "down", error: await response.text() };
+
+          if (!response.ok) {
+            throw body;
+          }
+
+          return body;
+        })
         .then((health) => {
           overall.textContent = health.status;
           overall.className = `status ${health.status}`;
@@ -157,7 +168,9 @@
             status: "down",
             message: "Could not fetch /api/health.",
           });
-          raw.textContent = JSON.stringify({ error: String(error) }, null, 2);
+          raw.textContent = typeof error === "string"
+            ? error
+            : JSON.stringify(error, null, 2);
         });
     </script>
   </body>
