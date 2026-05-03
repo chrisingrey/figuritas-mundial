@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { albumsService, type AlbumResponse } from "@backend";
+import { albumsService, type AlbumResponse, type AlbumRoleResponse } from "@backend";
 import { worldCupAlbum } from "@/data/worldCupAlbum";
 import type { WorldCupSticker } from "@/types/album";
 import { TeamCodeDropdown } from "./TeamCodeDropdown";
 import styles from "./index.module.scss";
+
+const INVITE_PERMISSION = "create-albumInvitation";
 
 type StickerMode = "all" | "owned" | "missing";
 
@@ -19,13 +21,58 @@ export default function Album() {
   const [stickerMode, setStickerMode] = useState<StickerMode>("all");
   const [toggling, setToggling] = useState<Set<string>>(new Set());
 
+  // Invite modal state
+  const [showInvite, setShowInvite] = useState(false);
+  const [roles, setRoles] = useState<AlbumRoleResponse[]>([]);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRoleId, setInviteRoleId] = useState("");
+  const [inviteSending, setInviteSending] = useState(false);
+  const [inviteError, setInviteError] = useState("");
+  const [inviteSent, setInviteSent] = useState(false);
+
   useEffect(() => {
     if (!albumId) return;
-    albumsService.getMyAlbum()
+    albumsService.getAlbum(albumId)
       .then(setAlbum)
       .catch(() => navigate("/"))
       .finally(() => setLoading(false));
   }, [albumId, navigate]);
+
+  const canInvite = album?.permissions?.some(p => p.name === INVITE_PERMISSION) ?? false;
+
+  const openInviteModal = async () => {
+    if (!albumId) return;
+    setInviteError("");
+    setInviteSent(false);
+    setInviteEmail("");
+    setShowInvite(true);
+    if (roles.length === 0) {
+      try {
+        const fetched = await albumsService.getRoles(albumId);
+        setRoles(fetched);
+        setInviteRoleId(fetched[0]?.id ?? "");
+      } catch {
+        setInviteError("No se pudieron cargar los roles.");
+      }
+    }
+  };
+
+  const handleInvite = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!albumId || !inviteEmail || !inviteRoleId) return;
+    setInviteSending(true);
+    setInviteError("");
+    try {
+      await albumsService.inviteMember(albumId, { invitedEmail: inviteEmail, roleId: inviteRoleId });
+      setInviteSent(true);
+      setInviteEmail("");
+      setTimeout(() => { setShowInvite(false); setInviteSent(false); }, 2200);
+    } catch {
+      setInviteError("No se pudo enviar la invitación. Verificá que el email sea correcto.");
+    } finally {
+      setInviteSending(false);
+    }
+  };
 
   const ownedSet = useMemo(() => {
     if (!album) return new Set<string>();
@@ -64,7 +111,6 @@ export default function Album() {
     if (!album || toggling.has(code)) return;
 
     setToggling(prev => new Set(prev).add(code));
-
     setAlbum(prev => {
       if (!prev) return prev;
       return {
@@ -111,9 +157,16 @@ export default function Album() {
           ← Volver
         </button>
         <span className={styles.title}>{album?.name ?? "Mi Album"}</span>
-        <span className={styles.progress}>
-          {ownedCount} / {totalCount} ({pct}%)
-        </span>
+        <div className={styles.headerRight}>
+          <span className={styles.progress}>
+            {ownedCount} / {totalCount} ({pct}%)
+          </span>
+          {canInvite && (
+            <button type="button" className={styles.inviteBtn} onClick={openInviteModal}>
+              + Invitar
+            </button>
+          )}
+        </div>
       </header>
 
       <div className={styles.workspace}>
@@ -193,6 +246,47 @@ export default function Album() {
           </div>
         </section>
       </div>
+
+      {showInvite && (
+        <div className={styles.overlay} onClick={() => setShowInvite(false)}>
+          <div className={styles.modal} onClick={e => e.stopPropagation()}>
+            <h3>Invitar al album</h3>
+            {inviteSent ? (
+              <p className={styles.inviteSuccess}>¡Invitación enviada correctamente!</p>
+            ) : (
+              <form onSubmit={handleInvite} className={styles.inviteForm}>
+                <p className={styles.inviteHint}>Ingresá el email de la persona a invitar.</p>
+                <input
+                  type="email"
+                  placeholder="email@ejemplo.com"
+                  value={inviteEmail}
+                  onChange={e => setInviteEmail(e.target.value)}
+                  required
+                  autoFocus
+                />
+                {roles.length > 1 && (
+                  <select
+                    value={inviteRoleId}
+                    onChange={e => setInviteRoleId(e.target.value)}
+                    className={styles.roleSelect}
+                  >
+                    {roles.map(r => (
+                      <option key={r.id} value={r.id}>{r.name}</option>
+                    ))}
+                  </select>
+                )}
+                {inviteError && <p className={styles.inviteError}>{inviteError}</p>}
+                <div className={styles.modalActions}>
+                  <button type="button" onClick={() => setShowInvite(false)}>Cancelar</button>
+                  <button type="submit" className={styles.inviteSend} disabled={inviteSending}>
+                    {inviteSending ? "Enviando..." : "Enviar invitación"}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

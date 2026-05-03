@@ -1,5 +1,5 @@
 import { ApiRepository } from "../api-repository";
-import type { AlbumResponse, CreateAlbumRequest, MemberResponse, InviteMemberRequest, InvitationResponse } from "./models";
+import type { AlbumResponse, CreateAlbumRequest, MemberResponse, InviteMemberRequest, InvitationResponse, AlbumRoleResponse } from "./models";
 
 const BASE_URI = "/api/albums";
 const api = new ApiRepository(BASE_URI);
@@ -7,6 +7,14 @@ const api = new ApiRepository(BASE_URI);
 export const albumsService = {
   async getMyAlbum(): Promise<AlbumResponse | null> {
     return api.get<AlbumResponse | null>("/my");
+  },
+
+  async getAlbum(albumId: string): Promise<AlbumResponse> {
+    return api.get<AlbumResponse>(`/${albumId}`);
+  },
+
+  async getRoles(albumId: string): Promise<AlbumRoleResponse[]> {
+    return api.get<AlbumRoleResponse[]>(`/${albumId}/roles`);
   },
 
   async createAlbum(request: CreateAlbumRequest): Promise<AlbumResponse> {

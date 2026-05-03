@@ -3,3 +3,4 @@ export type { CreateAlbumRequest } from "./CreateAlbumRequest";
 export type { MemberResponse } from "./MemberResponse";
 export type { InviteMemberRequest } from "./InviteMemberRequest";
 export type { InvitationResponse } from "./InvitationResponse";
+export type { AlbumRoleResponse } from "./AlbumRoleResponse";

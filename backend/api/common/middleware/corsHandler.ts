@@ -18,7 +18,6 @@ function isOriginAllowed(origin: string): boolean {
 
 export const corsHandler = cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (e.g. curl, mobile apps) and whitelisted origins
     if (!origin || isOriginAllowed(origin)) {
       callback(null, true);
     } else {
@@ -28,4 +27,5 @@ export const corsHandler = cors({
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Origin", "Content-Type", "Accept", "Authorization"],
   credentials: true,
+  maxAge: 0,
 });

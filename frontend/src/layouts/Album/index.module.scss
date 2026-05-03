@@ -20,7 +20,7 @@
   top: 0;
   z-index: 10;
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto 1fr auto;
   gap: 10px;
   align-items: center;
   padding: 12px 16px;
@@ -51,9 +51,13 @@
   white-space: nowrap;
 }
 
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .progress {
-  grid-column: 1 / -1;
-  justify-self: start;
   padding: 5px 9px;
   color: #101214;
   background: #b9e461;
@@ -61,6 +65,136 @@
   border-radius: 999px;
   font-size: 12px;
   font-weight: 900;
+  white-space: nowrap;
+}
+
+.inviteBtn {
+  min-height: 34px;
+  padding: 0 12px;
+  color: #101214;
+  background: #f7d719;
+  border: 2px solid #101214;
+  border-radius: 7px;
+  box-shadow: 3px 3px 0 #101214;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+// ─── Invite modal ─────────────────────────────────────────────────────────────
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(16, 18, 20, 0.54);
+}
+
+.modal {
+  width: min(100%, 440px);
+  padding: 24px 20px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 2px solid #101214;
+  border-radius: 8px;
+  box-shadow: 5px 5px 0 rgba(16, 18, 20, 0.18);
+
+  h3 {
+    margin: 0 0 16px;
+    color: #101214;
+    font-size: 20px;
+    font-weight: 1000;
+    text-transform: uppercase;
+  }
+}
+
+.inviteHint {
+  margin: 0 0 14px;
+  color: #5a5d63;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.inviteForm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  input,
+  .roleSelect {
+    min-height: 44px;
+    padding: 0 12px;
+    color: #101214;
+    background: #ffffff;
+    border: 2px solid #101214;
+    border-radius: 7px;
+    font-size: 15px;
+    outline: none;
+
+    &:focus {
+      border-color: #2368c4;
+      box-shadow: 0 0 0 4px rgba(35, 104, 196, 0.18);
+    }
+  }
+
+  .roleSelect {
+    appearance: none;
+    cursor: pointer;
+  }
+}
+
+.inviteError {
+  margin: 0;
+  color: #c51632;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.inviteSuccess {
+  padding: 14px;
+  color: #101214;
+  background: #b9e461;
+  border: 2px solid #101214;
+  border-radius: 7px;
+  font-size: 14px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.modalActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+
+  button {
+    min-height: 40px;
+    padding: 0 16px;
+    border: 2px solid #101214;
+    border-radius: 7px;
+    font-size: 14px;
+    font-weight: 900;
+    cursor: pointer;
+
+    &:first-child {
+      color: #101214;
+      background: #ffffff;
+    }
+
+    &:disabled {
+      opacity: 0.58;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.inviteSend {
+  color: #ffffff !important;
+  background: #2368c4 !important;
+  box-shadow: 3px 3px 0 #101214;
 }
 
 .workspace {
