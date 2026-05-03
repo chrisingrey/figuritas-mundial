@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { asyncHandler } from "@api/common/middleware/asyncHandler";
-import { getAuthenticatedUserId } from "@api/common/filters/AuthenticatedRequest";
+import { getAuthenticatedUserId, toAuthenticatedRequest } from "@api/common/filters/AuthenticatedRequest";
 import { toAuthorizedMemberRequest } from "@api/common/filters/AuthorizedMemberRequest";
 import { services } from "@api/config/services.config";
 import { mapAlbumResponse } from "./AlbumResponse";
@@ -166,6 +166,27 @@ export const getInvitations = asyncHandler(async (
   const { albumId } = toAuthorizedMemberRequest(req).authorizedMember;
   const invitations = await services.albumInviteService.getInvitations(albumId);
   res.status(200).json(invitations.map(mapAlbumInvitationResponse));
+});
+
+export const getInvitationById = asyncHandler(async (
+  req: Request,
+  res: Response,
+  _next: NextFunction,
+) => {
+  const { albumId, invitationId } = req.params;
+  const invitation = await services.albumInviteService.getInvitationById(albumId, invitationId);
+  res.status(200).json(mapAlbumInvitationResponse(invitation));
+});
+
+export const acceptInvitation = asyncHandler(async (
+  req: Request,
+  res: Response,
+  _next: NextFunction,
+) => {
+  const { albumId, invitationId } = req.params;
+  const { authenticatedUser } = toAuthenticatedRequest(req);
+  await services.albumInviteService.acceptInvitation(albumId, invitationId, authenticatedUser.id, authenticatedUser.email);
+  res.status(204).send();
 });
 
 export const createInvitation = asyncHandler(async (

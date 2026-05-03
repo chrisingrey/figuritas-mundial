@@ -121,6 +121,53 @@ export class AlbumInviteService implements IAlbumInviteService {
     return invitation;
   }
 
+  async getInvitationById(albumId: string, invitationId: string): Promise<AlbumInvitation> {
+    const invitation = await this.invitationRepository.getOrDefaultAsync(
+      (i: AlbumInvitation) => i.id === invitationId && i.albumId === albumId,
+    );
+    if (!invitation) {
+      throw new AppError(404, ErrorCode.RESOURCE_NOT_FOUND, "Invitation not found.");
+    }
+    return invitation;
+  }
+
+  async acceptInvitation(albumId: string, invitationId: string, userId: string, userEmail: string): Promise<void> {
+    const invitation = await this.invitationRepository.getOrDefaultAsync(
+      (i: AlbumInvitation) => i.id === invitationId && i.albumId === albumId,
+    );
+    if (!invitation) {
+      throw new AppError(404, ErrorCode.RESOURCE_NOT_FOUND, "Invitation not found.");
+    }
+
+    if (invitation.invitedEmail.toLowerCase() !== userEmail.toLowerCase()) {
+      throw new AppError(403, ErrorCode.UNAUTHORIZED, "This invitation was not sent to your email address.");
+    }
+
+    if (invitation.status !== InvitationStatus.PENDING || new Date(invitation.expiresAt) < new Date()) {
+      throw new AppError(400, ErrorCode.INVITATION_NOT_PENDING, "This invitation is no longer valid.");
+    }
+
+    const isAlreadyMember = await this.memberRepository.existsAsync(
+      (m: Member) => m.albumId === albumId && m.userId === userId && m.status === MemberStatus.ACTIVE,
+    );
+    if (isAlreadyMember) {
+      throw new AppError(409, ErrorCode.MEMBER_ALREADY_EXISTS, "You are already a member of this album.");
+    }
+
+    await this.memberRepository.createAndSaveAsync({
+      id: crypto.randomUUID(),
+      albumId,
+      userId,
+      roleId: invitation.roleId,
+      status: MemberStatus.ACTIVE,
+      joinedAt: new Date(),
+    });
+
+    await this.invitationRepository.patchByIdAndSaveAsync(invitationId, {
+      status: InvitationStatus.ACCEPTED,
+    });
+  }
+
   async getInvitations(albumId: string): Promise<AlbumInvitation[]> {
     const now = new Date();
 

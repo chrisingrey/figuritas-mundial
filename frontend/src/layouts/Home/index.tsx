@@ -91,7 +91,7 @@ export default function Home() {
           <div className={styles.empty}>
             <div className={styles.emptyCard}>
               <h2>Todavía no tenés un album</h2>
-              <p>Creá tu album para empezar a coleccionar las 980 figuritas del Mundial 2026.</p>
+              <p>Creá tu propio album para empezar a coleccionar, o unite a uno existente con un link de invitación.</p>
               <form onSubmit={handleCreate} className={styles.createForm}>
                 <input
                   type="text"
@@ -104,6 +104,23 @@ export default function Home() {
                   {creating ? "Creando..." : "Crear mi album"}
                 </button>
               </form>
+              <div className={styles.divider}>o</div>
+              <button
+                type="button"
+                className={styles.joinBtn}
+                onClick={() => {
+                  const url = prompt("Pegá el link de invitación que recibiste por email:");
+                  if (!url) return;
+                  try {
+                    const parsed = new URL(url);
+                    navigate(parsed.pathname);
+                  } catch {
+                    alert("El link no es válido.");
+                  }
+                }}
+              >
+                Unirme con link de invitación
+              </button>
             </div>
           </div>
         )}

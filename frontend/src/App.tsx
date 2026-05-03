@@ -3,6 +3,7 @@ import { UserLoggedProvider, useUserLogged } from "@/context";
 import Auth from "@/layouts/Auth";
 import Home from "@/layouts/Home";
 import Album from "@/layouts/Album";
+import AcceptInvitation from "@/layouts/AcceptInvitation";
 import type { ReactNode } from "react";
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
@@ -43,6 +44,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Album />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/albums/:albumId/invitations/:invitationId"
+        element={
+          <ProtectedRoute>
+            <AcceptInvitation />
           </ProtectedRoute>
         }
       />

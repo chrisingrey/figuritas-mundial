@@ -17,6 +17,8 @@ import {
   removeMember,
   getInvitations,
   createInvitation,
+  getInvitationById,
+  acceptInvitation,
 } from "./albums.controller";
 
 const router = Router();
@@ -43,8 +45,12 @@ router.get("/:albumId/members", userAuthenticationFilter, memberAuthorizationFil
 router.patch("/:albumId/members/:memberId", userAuthenticationFilter, memberAuthorizationFilter(":albumId", PermissionName.UPDATE_BY_ID_MEMBER), updateMemberRole);
 router.delete("/:albumId/members/:memberId", userAuthenticationFilter, memberAuthorizationFilter(":albumId", PermissionName.DELETE_BY_ID_MEMBER), removeMember);
 
-// Invitations
+// Invitations (member-scoped management)
 router.get("/:albumId/member-invites", userAuthenticationFilter, memberAuthorizationFilter(":albumId", PermissionName.GET_ALL_ALBUM_INVITATION), getInvitations);
 router.post("/:albumId/member-invites", userAuthenticationFilter, memberAuthorizationFilter(":albumId", PermissionName.CREATE_ALBUM_INVITATION), createInvitation);
+
+// Invitation accept flow (auth only — user is not yet a member)
+router.get("/:albumId/invitations/:invitationId", userAuthenticationFilter, getInvitationById);
+router.post("/:albumId/invitations/:invitationId/accept", userAuthenticationFilter, acceptInvitation);
 
 export { router as albumsRouter };

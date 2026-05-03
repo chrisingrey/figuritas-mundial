@@ -121,6 +121,29 @@
   }
 }
 
+.divider {
+  margin: 16px 0 12px;
+  color: #5a5d63;
+  font-size: 13px;
+  font-weight: 900;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.joinBtn {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 16px;
+  color: #101214;
+  background: #f7d719;
+  border: 2px solid #101214;
+  border-radius: 7px;
+  box-shadow: 4px 4px 0 #101214;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
 .createForm,
 .inviteForm {
   display: flex;
