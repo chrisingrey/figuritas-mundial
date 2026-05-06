@@ -8,6 +8,7 @@ import {
   getAlbum,
   updateAlbum,
   bulkUpdateStickers,
+  updateStickerRepeated,
   shareAlbumWithViewer,
   getSharedAlbum,
   getRoles,
@@ -41,6 +42,7 @@ router.post("/:albumId/share", userAuthenticationFilter, memberAuthorizationFilt
 
 // Stickers
 router.patch("/:albumId/stickers", userAuthenticationFilter, memberAuthorizationFilter(":albumId", PermissionName.UPDATE_BY_ID_ALBUM), bulkUpdateStickers);
+router.patch("/:albumId/stickers/:stickerCode/repeated", userAuthenticationFilter, memberAuthorizationFilter(":albumId", PermissionName.UPDATE_BY_ID_ALBUM), updateStickerRepeated);
 
 // Roles
 router.get("/:albumId/roles", userAuthenticationFilter, memberAuthorizationFilter(":albumId", PermissionName.GET_ALL_ALBUM_ROLE), getRoles);

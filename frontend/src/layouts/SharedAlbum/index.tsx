@@ -13,6 +13,21 @@ const STATUS_LABEL: Record<StickerStatus, string> = {
   pegado: "Pegado",
 };
 
+const normalizeSearchValue = (value: string) =>
+  value.trim().toUpperCase().replace(/\s+/g, " ");
+
+const matchesStickerSearch = (sticker: WorldCupSticker, query: string) => {
+  const normalizedQuery = normalizeSearchValue(query);
+  if (!normalizedQuery) return true;
+
+  const code = normalizeSearchValue(sticker.stickerCode);
+  if (/^\d+$/.test(normalizedQuery)) {
+    return Boolean(sticker.teamCode) && code.endsWith(` ${normalizedQuery}`);
+  }
+
+  return code.startsWith(normalizedQuery);
+};
+
 export default function SharedAlbum() {
   const { shareToken } = useParams<{ shareToken: string }>();
   const [album, setAlbum] = useState<AlbumResponse | null>(null);
@@ -20,6 +35,7 @@ export default function SharedAlbum() {
   const [notFound, setNotFound] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState("Todos");
   const [stickerMode, setStickerMode] = useState<StickerMode>("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     if (!shareToken) return;
@@ -32,6 +48,11 @@ export default function SharedAlbum() {
   const statusMap = useMemo(() => {
     if (!album) return new Map<string, StickerStatus>();
     return new Map(album.stickers.map(s => [s.code, s.status]));
+  }, [album]);
+
+  const repeatedMap = useMemo(() => {
+    if (!album) return new Map<string, number>();
+    return new Map(album.stickers.map(s => [s.code, s.repeated ?? 0]));
   }, [album]);
 
   const groups = useMemo(
@@ -48,12 +69,13 @@ export default function SharedAlbum() {
         return team?.group === selectedGroup;
       })
       .filter(sticker => {
+        if (!matchesStickerSearch(sticker, searchQuery)) return false;
         const st = statusMap.get(sticker.stickerCode) ?? "no_tengo";
         if (stickerMode === "tengo") return st !== "no_tengo";
         if (stickerMode === "no_tengo") return st === "no_tengo";
         return true;
       });
-  }, [selectedGroup, stickerMode, statusMap]);
+  }, [searchQuery, selectedGroup, stickerMode, statusMap]);
 
   const ownedCount = album?.ownedCount ?? 0;
   const totalCount = album?.totalCount ?? 980;
@@ -98,6 +120,13 @@ export default function SharedAlbum() {
               </button>
             ))}
           </div>
+          <input
+            type="search"
+            className={styles.searchInput}
+            placeholder="Buscar por codigo: MEX, MEX 1, 17"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+          />
         </div>
 
         <div className={styles.stickerGrid}>
@@ -111,6 +140,9 @@ export default function SharedAlbum() {
               >
                 <strong className={styles.stickerCode}>{sticker.stickerCode}</strong>
                 <span className={styles.stickerMeta}>{sticker.teamCode ?? "SP"}</span>
+                {(repeatedMap.get(sticker.stickerCode) ?? 0) > 0 && (
+                  <span className={styles.repeatedBadge}>Rep. {repeatedMap.get(sticker.stickerCode)}</span>
+                )}
                 <span className={styles[`label_${status}`]}>
                   {STATUS_LABEL[status]}
                 </span>

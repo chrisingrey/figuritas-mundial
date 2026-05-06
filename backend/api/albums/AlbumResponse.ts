@@ -9,6 +9,7 @@ export interface AlbumStickerResponse {
   code: string;
   status: StickerStatusResponse;
   owned: boolean;
+  repeated: number;
 }
 
 export interface AlbumResponse {
@@ -30,6 +31,7 @@ const mapStickerResponse = (s: AlbumSticker): AlbumStickerResponse => {
     code: s.code,
     status,
     owned: status !== "no_tengo",
+    repeated: status === "pegado" ? s.repeated ?? 0 : 0,
   };
 };
 

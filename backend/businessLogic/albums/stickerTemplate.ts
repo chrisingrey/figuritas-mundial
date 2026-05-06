@@ -29,20 +29,20 @@ buildNotes();
 export function generateAlbumStickers(): AlbumSticker[] {
   const stickers: AlbumSticker[] = [];
 
-  stickers.push({ code: "00", status: "no_tengo" });
+  stickers.push({ code: "00", status: "no_tengo", repeated: 0 });
 
   for (let i = 1; i <= 8; i++) {
-    stickers.push({ code: `FWX ${i}`, status: "no_tengo" });
+    stickers.push({ code: `FWX ${i}`, status: "no_tengo", repeated: 0 });
   }
 
   for (const code of TEAM_CODES) {
     for (let n = 1; n <= 20; n++) {
-      stickers.push({ code: `${code} ${n}`, status: "no_tengo" });
+      stickers.push({ code: `${code} ${n}`, status: "no_tengo", repeated: 0 });
     }
   }
 
   for (let i = 9; i <= 19; i++) {
-    stickers.push({ code: `FWC ${i}`, status: "no_tengo" });
+    stickers.push({ code: `FWC ${i}`, status: "no_tengo", repeated: 0 });
   }
 
   return stickers;

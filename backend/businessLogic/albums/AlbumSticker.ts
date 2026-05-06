@@ -5,6 +5,7 @@ export const STICKER_STATUSES: StickerStatus[] = ["no_tengo", "tengo", "pegado"]
 export interface AlbumSticker {
   code: string;
   status: StickerStatus;
+  repeated?: number;
   /** @deprecated migrated from boolean owned field */
   owned?: boolean;
 }

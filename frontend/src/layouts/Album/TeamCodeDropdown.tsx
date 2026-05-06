@@ -80,10 +80,19 @@ export function TeamCodeDropdown({
       {open && (
         <div className={styles.menu}>
           <input
-            type="search"
+            type="text"
+            name="team-code-filter"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Buscar por code..."
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="none"
+            spellCheck={false}
+            inputMode="search"
+            role="searchbox"
+            data-1p-ignore="true"
+            data-lpignore="true"
             autoFocus
           />
 

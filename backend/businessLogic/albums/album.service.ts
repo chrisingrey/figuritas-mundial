@@ -56,7 +56,35 @@ export class AlbumService implements IAlbumService {
 
     const album = await this.albumRepository.getAsync((a: Album) => a.id === albumId);
     const updatedStickers = album.stickers.map(s =>
-      codeSet.has(s.code) ? { ...s, status, owned: status !== "no_tengo" } : s,
+      codeSet.has(s.code)
+        ? { ...s, status, owned: status !== "no_tengo", repeated: status === "pegado" ? s.repeated ?? 0 : 0 }
+        : s,
+    );
+
+    return this.albumRepository.patchByIdAndSaveAsync(albumId, {
+      stickers: updatedStickers,
+      updatedAt: new Date(),
+    });
+  }
+
+  async setStickerRepeated(albumId: string, code: string, repeated: number): Promise<Album> {
+    const normalizedCode = code.trim();
+    if (!ALL_STICKER_CODES.has(normalizedCode)) {
+      throw new AppError(400, ErrorCode.INVALID_STICKER_CODE, `Sticker code '${normalizedCode}' does not exist.`);
+    }
+
+    if (!Number.isInteger(repeated) || repeated < 0) {
+      throw new AppError(400, ErrorCode.INVALID_ALBUM_DATA, "Repeated must be a non-negative integer.");
+    }
+
+    const album = await this.albumRepository.getAsync((a: Album) => a.id === albumId);
+    const sticker = album.stickers.find(s => s.code === normalizedCode);
+    if (!sticker || sticker.status !== "pegado") {
+      throw new AppError(400, ErrorCode.INVALID_ALBUM_DATA, "Repeated stickers can only be updated for pasted stickers.");
+    }
+
+    const updatedStickers = album.stickers.map(s =>
+      s.code === normalizedCode ? { ...s, repeated } : s,
     );
 
     return this.albumRepository.patchByIdAndSaveAsync(albumId, {

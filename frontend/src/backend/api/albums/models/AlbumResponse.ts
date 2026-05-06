@@ -4,6 +4,7 @@ export interface AlbumStickerResponse {
   code: string;
   status: StickerStatus;
   owned: boolean;
+  repeated: number;
 }
 
 export interface AlbumResponse {

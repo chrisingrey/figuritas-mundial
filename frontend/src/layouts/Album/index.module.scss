@@ -118,6 +118,7 @@
 .workspace {
   display: grid;
   gap: 12px;
+  align-items: start;
   padding: 12px;
   width: 100%;
   min-inline-size: 0;
@@ -132,6 +133,47 @@
   display: grid;
   gap: 10px;
   margin-bottom: 18px;
+}
+
+.albumFilters {
+  position: relative;
+  z-index: 40;
+  display: grid;
+  gap: 10px;
+  margin-bottom: 18px;
+  padding: 12px;
+  background: #f8f7f1;
+  border: 2px solid #101214;
+  border-radius: 8px;
+  overflow: visible;
+}
+
+.filterHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-inline-size: 0;
+
+  span,
+  strong {
+    color: #5a5d63;
+    font-size: 11px;
+    font-weight: 1000;
+    text-transform: uppercase;
+  }
+
+  span {
+    color: #101214;
+  }
+}
+
+.filterControls {
+  position: relative;
+  z-index: 45;
+  display: grid;
+  gap: 10px;
+  min-inline-size: 0;
 }
 
 .sidebar,
@@ -158,7 +200,7 @@
 .mainPanel {
   width: 100%;
   min-inline-size: 0;
-  overflow: hidden;
+  overflow: visible;
   padding: 14px;
 }
 
@@ -428,6 +470,24 @@
   line-height: 1;
 }
 
+.repeatedBadge {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  max-width: calc(100% - 12px);
+  transform: translateX(-50%);
+  padding: 2px 6px;
+  color: #ffffff;
+  background: #2368c4;
+  border: 2px solid #101214;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 1000;
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow: 2px 2px 0 rgba(16, 18, 20, 0.18);
+}
+
 // ─── Bulk action bar ──────────────────────────────────────────────────────────
 
 .selectionActions {
@@ -497,7 +557,7 @@
   background: #c51632;
 }
 
-// ─── Groups / segmented ───────────────────────────────────────────────────────
+// ─── Modes / filters ─────────────────────────────────────────────────────────
 
 .panelHeader {
   display: grid;
@@ -527,7 +587,6 @@
   }
 }
 
-.segmented,
 .modeSwitch {
   display: flex;
   gap: 6px;
@@ -542,8 +601,6 @@
   }
 }
 
-.segBtn,
-.segBtnActive,
 .modeBtn,
 .modeBtnActive {
   flex: 0 0 auto;
@@ -557,20 +614,32 @@
   white-space: nowrap;
 }
 
-.segBtn,
 .modeBtn {
   color: #101214;
   background: #ffffff;
 }
 
-.segBtnActive {
-  color: #101214;
-  background: #ff6d00;
-}
-
 .modeBtnActive {
   color: #ffffff;
   background: #2368c4;
+}
+
+.searchInput {
+  width: 100%;
+  min-height: 38px;
+  padding: 0 12px;
+  color: #101214;
+  background: #ffffff;
+  border: 2px solid #101214;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 800;
+  outline: none;
+
+  &:focus {
+    border-color: #2368c4;
+    box-shadow: 0 0 0 4px rgba(35, 104, 196, 0.18);
+  }
 }
 
 // ─── Sticker grid ─────────────────────────────────────────────────────────────
@@ -822,6 +891,44 @@
   box-shadow: 3px 3px 0 #101214;
 }
 
+.repeatedEditor {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  gap: 8px;
+  margin-bottom: 12px;
+
+  button,
+  input {
+    min-height: 44px;
+    color: #101214;
+    background: #ffffff;
+    border: 2px solid #101214;
+    border-radius: 7px;
+    font-size: 18px;
+    font-weight: 1000;
+    text-align: center;
+  }
+
+  button {
+    cursor: pointer;
+    box-shadow: 2px 2px 0 #101214;
+
+    &:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+  }
+
+  input {
+    outline: none;
+
+    &:focus {
+      border-color: #2368c4;
+      box-shadow: 0 0 0 4px rgba(35, 104, 196, 0.18);
+    }
+  }
+}
+
 .inviteBtn {
   flex: 0 0 auto;
   min-height: 30px;
@@ -855,13 +962,17 @@
   .sidebar {
     position: sticky;
     top: 80px;
-    max-height: calc(100svh - 100px);
-    overflow-y: auto;
-    scrollbar-width: thin;
+    align-self: start;
+    overflow: visible;
   }
 
   .mainPanel {
     padding: 18px;
+  }
+
+  .filterControls {
+    grid-template-columns: minmax(260px, 1fr) minmax(220px, 360px);
+    align-items: start;
   }
 
   .panelHeader {

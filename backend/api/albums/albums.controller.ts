@@ -235,6 +235,24 @@ export const bulkUpdateStickers = asyncHandler(async (
   res.status(200).json(mapAlbumResponse(album, permissions));
 });
 
+export const updateStickerRepeated = asyncHandler(async (
+  req: Request,
+  res: Response,
+  _next: NextFunction,
+) => {
+  const { albumId, permissions } = toAuthorizedMemberRequest(req).authorizedMember;
+  const { stickerCode } = req.params;
+  const { repeated } = req.body as { repeated?: unknown };
+
+  if (typeof repeated !== "number") {
+    res.status(400).json({ message: "Invalid body: repeated (number) required." });
+    return;
+  }
+
+  const album = await services.albumService.setStickerRepeated(albumId, stickerCode, repeated);
+  res.status(200).json(mapAlbumResponse(album, permissions));
+});
+
 // ─── Invitations ─────────────────────────────────────────────────────────────
 
 export const getInvitations = asyncHandler(async (

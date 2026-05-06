@@ -10,4 +10,5 @@ export interface IAlbumService {
   createAlbum(args: CreateAlbumArgs): Promise<Album>;
   updateAlbum(id: string, args: UpdateAlbumArgs): Promise<Album>;
   bulkSetStickerStatus(albumId: string, codes: string[], status: StickerStatus): Promise<Album>;
+  setStickerRepeated(albumId: string, code: string, repeated: number): Promise<Album>;
 }

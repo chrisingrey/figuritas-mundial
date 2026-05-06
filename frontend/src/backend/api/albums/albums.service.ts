@@ -45,6 +45,13 @@ export const albumsService = {
     return api.patch<{ codes: string[]; status: string }, AlbumResponse>({ codes, status }, `/${albumId}/stickers`);
   },
 
+  async updateStickerRepeated(albumId: string, code: string, repeated: number): Promise<AlbumResponse> {
+    return api.patch<{ repeated: number }, AlbumResponse>(
+      { repeated },
+      `/${albumId}/stickers/${encodeURIComponent(code)}/repeated`,
+    );
+  },
+
   async shareAlbum(albumId: string, invitedEmail: string): Promise<InvitationResponse> {
     return api.post<{ invitedEmail: string }, InvitationResponse>({ invitedEmail }, `/${albumId}/share`);
   },

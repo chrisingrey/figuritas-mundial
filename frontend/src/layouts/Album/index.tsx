@@ -13,7 +13,7 @@ const VIEW_MEMBERS_PERMISSION = "getAll-member";
 const MANAGE_MEMBER_PERMISSION = "updateById-member";
 const DELETE_MEMBER_PERMISSION = "deleteById-member";
 
-type StickerMode = "all" | "no_tengo" | "owned" | "tengo" | "pegado";
+type StickerMode = "all" | "no_tengo" | "owned" | "tengo" | "pegado" | "viewer_needs_my_repeated";
 type SelectionGroup = "missing" | "owned";
 
 const STATUS_LABEL: Record<StickerStatus, string> = {
@@ -47,6 +47,21 @@ const MIXED_OWNED_ACTIONS: BulkAction[] = [
 const getSelectionGroup = (status: StickerStatus): SelectionGroup =>
   status === "no_tengo" ? "missing" : "owned";
 
+const normalizeSearchValue = (value: string) =>
+  value.trim().toUpperCase().replace(/\s+/g, " ");
+
+const matchesStickerSearch = (sticker: WorldCupSticker, query: string) => {
+  const normalizedQuery = normalizeSearchValue(query);
+  if (!normalizedQuery) return true;
+
+  const code = normalizeSearchValue(sticker.stickerCode);
+  if (/^\d+$/.test(normalizedQuery)) {
+    return Boolean(sticker.teamCode) && code.endsWith(` ${normalizedQuery}`);
+  }
+
+  return code.startsWith(normalizedQuery);
+};
+
 export default function Album() {
   const { albumId } = useParams<{ albumId: string }>();
   const navigate = useNavigate();
@@ -54,14 +69,19 @@ export default function Album() {
 
   const [album, setAlbum] = useState<AlbumResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedGroup, setSelectedGroup] = useState("Todos");
   const [selectedTeamCode, setSelectedTeamCode] = useState("Todos");
   const [stickerMode, setStickerMode] = useState<StickerMode>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [myAlbum, setMyAlbum] = useState<AlbumResponse | null>(null);
 
   // Bulk selection
   const [selection, setSelection] = useState<Set<string>>(new Set());
   const [selectionGroup, setSelectionGroup] = useState<SelectionGroup | null>(null);
   const [bulkLoading, setBulkLoading] = useState(false);
+  const [selectedRepeatedSticker, setSelectedRepeatedSticker] = useState<string | null>(null);
+  const [repeatedDraft, setRepeatedDraft] = useState(0);
+  const [repeatedSaving, setRepeatedSaving] = useState(false);
+  const [repeatedError, setRepeatedError] = useState("");
 
   // Members state
   const [members, setMembers] = useState<MemberResponse[]>([]);
@@ -109,6 +129,15 @@ export default function Album() {
   const canDeleteMembers = currentPermissions.some(p => p.name === DELETE_MEMBER_PERMISSION);
   const readOnlyAlbum = !canUpdateAlbum;
   const showManagementSections = canViewMembers || canInvite || canUpdateAlbum;
+
+  useEffect(() => {
+    if (!readOnlyAlbum || !album) return;
+    albumsService.getMyAlbum()
+      .then(myAlbumData => {
+        if (myAlbumData?.id !== album.id) setMyAlbum(myAlbumData);
+      })
+      .catch(() => setMyAlbum(null));
+  }, [album, readOnlyAlbum]);
 
   const loadMembers = async () => {
     if (!albumId || membersLoaded || !canViewMembers) return;
@@ -201,34 +230,35 @@ export default function Album() {
     return new Map(album.stickers.map(s => [s.code, s.status]));
   }, [album]);
 
-  const groups = useMemo(
-    () => ["Todos", ...Array.from(new Set(worldCupAlbum.teams.map(t => t.group))).sort((a, b) => Number(a) - Number(b))],
-    [],
-  );
+  const repeatedMap = useMemo(() => {
+    if (!album) return new Map<string, number>();
+    return new Map(album.stickers.map(s => [s.code, s.repeated ?? 0]));
+  }, [album]);
 
-  const visibleTeams = useMemo(
-    () => worldCupAlbum.teams.filter(t => selectedGroup === "Todos" || t.group === selectedGroup),
-    [selectedGroup],
-  );
+  const myRepeatedMap = useMemo(() => {
+    if (!myAlbum) return new Map<string, number>();
+    return new Map(myAlbum.stickers.map(s => [s.code, s.repeated ?? 0]));
+  }, [myAlbum]);
+
+  const visibleTeams = worldCupAlbum.teams;
 
   const visibleStickers = useMemo((): WorldCupSticker[] => {
     return worldCupAlbum.stickers
       .filter(sticker => {
         if (selectedTeamCode !== "Todos") return sticker.teamCode === selectedTeamCode;
-        if (selectedGroup !== "Todos") {
-          if (sticker.type === "special") return false;
-          const team = worldCupAlbum.teams.find(t => t.code === sticker.teamCode);
-          return team?.group === selectedGroup;
-        }
         return true;
       })
       .filter(sticker => {
+        if (!matchesStickerSearch(sticker, searchQuery)) return false;
         const st = statusMap.get(sticker.stickerCode) ?? "no_tengo";
+        if (stickerMode === "viewer_needs_my_repeated") {
+          return st === "no_tengo" && (myRepeatedMap.get(sticker.stickerCode) ?? 0) > 0;
+        }
         if (stickerMode === "all") return true;
         if (stickerMode === "owned") return st === "tengo" || st === "pegado";
         return st === stickerMode;
       });
-  }, [selectedGroup, selectedTeamCode, stickerMode, statusMap]);
+  }, [myRepeatedMap, searchQuery, selectedTeamCode, stickerMode, statusMap]);
 
   // ── Bulk select ──────────────────────────────────────────────────────────────
   const clearSelection = useCallback(() => {
@@ -270,7 +300,7 @@ export default function Album() {
         const wasOwned = s.status !== "no_tengo";
         const willBeOwned = targetStatus !== "no_tengo";
         delta += (willBeOwned ? 1 : 0) - (wasOwned ? 1 : 0);
-        return { ...s, status: targetStatus, owned: willBeOwned };
+        return { ...s, status: targetStatus, owned: willBeOwned, repeated: targetStatus === "pegado" ? s.repeated ?? 0 : 0 };
       });
       return { ...prev, stickers, ownedCount: prev.ownedCount + delta };
     });
@@ -287,6 +317,51 @@ export default function Album() {
       setAlbum(prevAlbum);
     } finally {
       setBulkLoading(false);
+    }
+  };
+
+  const openRepeatedModal = (code: string) => {
+    setSelectedRepeatedSticker(code);
+    setRepeatedDraft(repeatedMap.get(code) ?? 0);
+    setRepeatedError("");
+  };
+
+  const handleRepeatedAction = () => {
+    const [code] = Array.from(selection);
+    if (!code || (statusMap.get(code) ?? "no_tengo") !== "pegado") return;
+    openRepeatedModal(code);
+  };
+
+  const handleSaveRepeated = async () => {
+    if (!albumId || !album || !selectedRepeatedSticker) return;
+    const nextRepeated = Math.max(0, Math.floor(repeatedDraft));
+    setRepeatedSaving(true);
+    setRepeatedError("");
+
+    const prevAlbum = album;
+    setAlbum(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        stickers: prev.stickers.map(s =>
+          s.code === selectedRepeatedSticker ? { ...s, repeated: nextRepeated } : s,
+        ),
+      };
+    });
+
+    try {
+      const updated = await albumsService.updateStickerRepeated(albumId, selectedRepeatedSticker, nextRepeated);
+      setAlbum(prev => ({
+        ...updated,
+        permissions: updated.permissions ?? prev?.permissions ?? currentPermissions,
+      }));
+      setSelectedRepeatedSticker(null);
+      clearSelection();
+    } catch {
+      setAlbum(prevAlbum);
+      setRepeatedError("No se pudo guardar la cantidad.");
+    } finally {
+      setRepeatedSaving(false);
     }
   };
 
@@ -355,6 +430,12 @@ export default function Album() {
     if (statuses.length === 1) return BULK_ACTIONS[statuses[0]];
     return MIXED_OWNED_ACTIONS;
   }, [selectedStatuses]);
+
+  const canEditRepeatedSelection = useMemo(() => {
+    if (selection.size !== 1) return false;
+    const [code] = Array.from(selection);
+    return (statusMap.get(code) ?? "no_tengo") === "pegado";
+  }, [selection, statusMap]);
 
   if (loading) return <div className={styles.loading}>Cargando album...</div>;
 
@@ -442,28 +523,6 @@ export default function Album() {
               {kpiExpanded ? "Ver menos ▲" : "Ver más ▼"}
             </button>
           </div>
-
-          {/* ── Groups ──────────────────────────────────────── */}
-          <div className={styles.sectionBlock}>
-            <div className={styles.sectionHeader}>
-              <div><h2>Grupos</h2><span>{visibleTeams.length} países</span></div>
-            </div>
-            <div className={styles.segmented}>
-              {groups.map(group => (
-                <button
-                  type="button" key={group}
-                  className={group === selectedGroup ? styles.segBtnActive : styles.segBtn}
-                  onClick={() => { setSelectedGroup(group); setSelectedTeamCode("Todos"); }}
-                >
-                  {group === "Todos" ? "Todos" : `G${group}`}
-                </button>
-              ))}
-            </div>
-            <TeamCodeDropdown
-              teams={visibleTeams} selectedTeamCode={selectedTeamCode}
-              selectedGroup={selectedGroup} onSelect={setSelectedTeamCode}
-            />
-          </div>
         </section>
         )}
 
@@ -471,7 +530,7 @@ export default function Album() {
           <div className={styles.panelHeader}>
             <div>
               <h2>
-                {visibleTeam ? visibleTeam.name : selectedGroup !== "Todos" ? `Grupo ${selectedGroup}` : "Figuritas"}
+                {visibleTeam ? visibleTeam.name : "Figuritas"}
               </h2>
               <p>
                 {visibleTeam
@@ -481,7 +540,14 @@ export default function Album() {
             </div>
             <div className={styles.panelHeaderRight}>
               <div className={styles.modeSwitch}>
-                {(["all", "no_tengo", "owned", "tengo", "pegado"] as StickerMode[]).map(mode => (
+                {([
+                  "all",
+                  "no_tengo",
+                  "owned",
+                  "tengo",
+                  "pegado",
+                  ...(readOnlyAlbum && myAlbum ? ["viewer_needs_my_repeated" as const] : []),
+                ] as StickerMode[]).map(mode => (
                   <button
                     type="button" key={mode}
                     className={mode === stickerMode ? `${styles.modeBtn} ${styles.modeBtnActive}` : styles.modeBtn}
@@ -491,7 +557,8 @@ export default function Album() {
                       : mode === "no_tengo" ? `No tengo (${modeCounts.noTengo})`
                       : mode === "owned" ? `Tengo y pegado (${modeCounts.tengo + modeCounts.pegado})`
                       : mode === "tengo" ? `Tengo (${modeCounts.tengo})`
-                      : `Pegado (${modeCounts.pegado})`}
+                      : mode === "pegado" ? `Pegado (${modeCounts.pegado})`
+                      : "Mis repetidas que necesita"}
                   </button>
                 ))}
               </div>
@@ -503,25 +570,25 @@ export default function Album() {
             </div>
           </div>
 
-          {readOnlyAlbum && (
-            <div className={styles.readOnlyFilters}>
-              <div className={styles.segmented}>
-                {groups.map(group => (
-                  <button
-                    type="button" key={group}
-                    className={group === selectedGroup ? styles.segBtnActive : styles.segBtn}
-                    onClick={() => { setSelectedGroup(group); setSelectedTeamCode("Todos"); }}
-                  >
-                    {group === "Todos" ? "Todos" : `G${group}`}
-                  </button>
-                ))}
-              </div>
+          <div className={styles.albumFilters}>
+            <div className={styles.filterHeader}>
+              <span>Paises y busqueda</span>
+              <strong>{visibleTeams.length} paises</strong>
+            </div>
+            <div className={styles.filterControls}>
               <TeamCodeDropdown
                 teams={visibleTeams} selectedTeamCode={selectedTeamCode}
-                selectedGroup={selectedGroup} onSelect={setSelectedTeamCode}
+                selectedGroup="Todos" onSelect={setSelectedTeamCode}
+              />
+              <input
+                type="search"
+                className={styles.searchInput}
+                placeholder="Buscar por codigo: MEX, MEX 1, 17"
+                value={searchQuery}
+                onChange={e => { setSearchQuery(e.target.value); clearSelection(); }}
               />
             </div>
-          )}
+          </div>
 
           <div className={styles.stickerGrid}>
             {visibleStickers.map(sticker => {
@@ -544,6 +611,9 @@ export default function Album() {
                   {!readOnlyAlbum && isSelected && <span className={styles.checkmark}>✓</span>}
                   <strong className={styles.stickerCode}>{sticker.stickerCode}</strong>
                   <span className={styles.stickerMeta}>{sticker.teamCode ?? "SP"}</span>
+                  {(repeatedMap.get(sticker.stickerCode) ?? 0) > 0 && (
+                    <span className={styles.repeatedBadge}>Rep. {repeatedMap.get(sticker.stickerCode)}</span>
+                  )}
                   <span className={styles[`label_${status}`]}>{STATUS_LABEL[status]}</span>
                 </article>
               );
@@ -570,6 +640,16 @@ export default function Album() {
                 {action.label}
               </button>
             ))}
+            {canEditRepeatedSelection && (
+              <button
+                type="button"
+                className={`${styles.bulkBtn} ${styles.bulkBtn_primary}`}
+                onClick={handleRepeatedAction}
+                disabled={bulkLoading}
+              >
+                Repetida
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -673,6 +753,45 @@ export default function Album() {
                 <button type="button" onClick={() => setSelectedMember(null)}>Cerrar</button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {selectedRepeatedSticker && (
+        <div className={styles.overlay} onClick={() => setSelectedRepeatedSticker(null)}>
+          <div className={styles.modal} onClick={e => e.stopPropagation()}>
+            <h3>Repetida {selectedRepeatedSticker}</h3>
+            <div className={styles.repeatedEditor}>
+              <button
+                type="button"
+                onClick={() => setRepeatedDraft(value => Math.max(0, value - 1))}
+                disabled={repeatedSaving || repeatedDraft <= 0}
+              >
+                -
+              </button>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                value={repeatedDraft}
+                onChange={e => setRepeatedDraft(Math.max(0, Number(e.target.value) || 0))}
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={() => setRepeatedDraft(value => value + 1)}
+                disabled={repeatedSaving}
+              >
+                +
+              </button>
+            </div>
+            {repeatedError && <p className={styles.inviteError}>{repeatedError}</p>}
+            <div className={styles.modalActions}>
+              <button type="button" onClick={() => setSelectedRepeatedSticker(null)}>Cancelar</button>
+              <button type="button" className={styles.inviteSend} onClick={handleSaveRepeated} disabled={repeatedSaving}>
+                {repeatedSaving ? "Guardando..." : "Guardar"}
+              </button>
+            </div>
           </div>
         </div>
       )}
