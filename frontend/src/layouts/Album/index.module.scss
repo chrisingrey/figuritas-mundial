@@ -996,3 +996,29 @@
     grid-template-columns: repeat(7, 1fr);
   }
 }
+
+// ─── Export modal ─────────────────────────────────────────────────────────────
+
+.exportOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.exportOption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  color: #101214;
+  font-size: 14px;
+  font-weight: 800;
+
+  input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #2368c4;
+  }
+}

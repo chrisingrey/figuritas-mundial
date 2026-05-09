@@ -13,7 +13,7 @@ const VIEW_MEMBERS_PERMISSION = "getAll-member";
 const MANAGE_MEMBER_PERMISSION = "updateById-member";
 const DELETE_MEMBER_PERMISSION = "deleteById-member";
 
-type StickerMode = "all" | "no_tengo" | "owned" | "tengo" | "pegado" | "viewer_needs_my_repeated";
+type StickerMode = "all" | "no_tengo" | "owned" | "tengo" | "pegado" | "repetidas" | "viewer_needs_my_repeated";
 type SelectionGroup = "missing" | "owned";
 
 const STATUS_LABEL: Record<StickerStatus, string> = {
@@ -102,6 +102,12 @@ export default function Album() {
 
   // KPIs
   const [kpiExpanded, setKpiExpanded] = useState(false);
+
+  // Export modal
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportTengo, setExportTengo] = useState(true);
+  const [exportFaltan, setExportFaltan] = useState(true);
+  const [exportRepetidas, setExportRepetidas] = useState(true);
 
   // Share
   const [showShare, setShowShare] = useState(false);
@@ -254,6 +260,7 @@ export default function Album() {
         if (stickerMode === "viewer_needs_my_repeated") {
           return st === "no_tengo" && (myRepeatedMap.get(sticker.stickerCode) ?? 0) > 0;
         }
+        if (stickerMode === "repetidas") return (repeatedMap.get(sticker.stickerCode) ?? 0) > 0;
         if (stickerMode === "all") return true;
         if (stickerMode === "owned") return st === "tengo" || st === "pegado";
         return st === stickerMode;
@@ -366,15 +373,30 @@ export default function Album() {
   };
 
   const handleExport = () => {
+    setShowExportModal(true);
+  };
+
+  const handleExportConfirm = () => {
     if (!album) return;
     const lines: string[] = [];
     for (const team of worldCupAlbum.teams) {
       const teamStickers = worldCupAlbum.stickers.filter(s => s.teamCode === team.code);
-      const tengo = teamStickers.filter(s => (statusMap.get(s.stickerCode) ?? "no_tengo") !== "no_tengo").map(s => s.stickerCode);
-      const faltan = teamStickers.filter(s => (statusMap.get(s.stickerCode) ?? "no_tengo") === "no_tengo").map(s => s.stickerCode);
-      lines.push(team.code);
-      lines.push(`Tengo: ${tengo.length > 0 ? tengo.join(", ") : "-"}`);
-      lines.push(`Faltan: ${faltan.length > 0 ? faltan.join(", ") : "-"}`);
+      const teamLines: string[] = [team.code];
+      if (exportTengo) {
+        const tengo = teamStickers.filter(s => (statusMap.get(s.stickerCode) ?? "no_tengo") !== "no_tengo").map(s => s.stickerCode);
+        teamLines.push(`Tengo: ${tengo.length > 0 ? tengo.join(", ") : "-"}`);
+      }
+      if (exportFaltan) {
+        const faltan = teamStickers.filter(s => (statusMap.get(s.stickerCode) ?? "no_tengo") === "no_tengo").map(s => s.stickerCode);
+        teamLines.push(`Faltan: ${faltan.length > 0 ? faltan.join(", ") : "-"}`);
+      }
+      if (exportRepetidas) {
+        const repetidas = teamStickers
+          .filter(s => (repeatedMap.get(s.stickerCode) ?? 0) > 0)
+          .map(s => `${s.stickerCode} (x${repeatedMap.get(s.stickerCode)})`);
+        teamLines.push(`Repetidas: ${repetidas.length > 0 ? repetidas.join(", ") : "-"}`);
+      }
+      lines.push(...teamLines);
       lines.push("");
     }
     const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
@@ -384,6 +406,7 @@ export default function Album() {
     a.download = `figuritas-${album.name.replace(/\s+/g, "-")}.txt`;
     a.click();
     URL.revokeObjectURL(url);
+    setShowExportModal(false);
   };
 
   // KPI calculations
@@ -404,10 +427,15 @@ export default function Album() {
   }, [statusMap]);
 
   const modeCounts = useMemo(() => {
-    let noTengo = 0, tengo = 0, pegado = 0;
-    statusMap.forEach(st => { if (st === "no_tengo") noTengo++; else if (st === "tengo") tengo++; else pegado++; });
-    return { noTengo, tengo, pegado };
-  }, [statusMap]);
+    let noTengo = 0, tengo = 0, pegado = 0, repetidas = 0;
+    statusMap.forEach((st, code) => {
+      if (st === "no_tengo") noTengo++;
+      else if (st === "tengo") tengo++;
+      else pegado++;
+      if ((repeatedMap.get(code) ?? 0) > 0) repetidas++;
+    });
+    return { noTengo, tengo, pegado, repetidas };
+  }, [statusMap, repeatedMap]);
 
   const visibleTeam = worldCupAlbum.teams.find(t => t.code === selectedTeamCode);
   const ownedCount = album?.ownedCount ?? 0;
@@ -546,6 +574,7 @@ export default function Album() {
                   "owned",
                   "tengo",
                   "pegado",
+                  ...(!readOnlyAlbum ? ["repetidas" as const] : []),
                   ...(readOnlyAlbum && myAlbum ? ["viewer_needs_my_repeated" as const] : []),
                 ] as StickerMode[]).map(mode => (
                   <button
@@ -558,6 +587,7 @@ export default function Album() {
                       : mode === "owned" ? `Tengo y pegado (${modeCounts.tengo + modeCounts.pegado})`
                       : mode === "tengo" ? `Tengo (${modeCounts.tengo})`
                       : mode === "pegado" ? `Pegado (${modeCounts.pegado})`
+                      : mode === "repetidas" ? `Repetidas (${modeCounts.repetidas})`
                       : "Mis repetidas que necesita"}
                   </button>
                 ))}
@@ -753,6 +783,41 @@ export default function Album() {
                 <button type="button" onClick={() => setSelectedMember(null)}>Cerrar</button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Export modal ───────────────────────────────────────────────────────── */}
+      {showExportModal && (
+        <div className={styles.overlay} onClick={() => setShowExportModal(false)}>
+          <div className={styles.modal} onClick={e => e.stopPropagation()}>
+            <h3>Exportar figuritas</h3>
+            <p className={styles.inviteHint}>Seleccioná qué información querés incluir en el archivo.</p>
+            <div className={styles.exportOptions}>
+              <label className={styles.exportOption}>
+                <input type="checkbox" checked={exportTengo} onChange={e => setExportTengo(e.target.checked)} />
+                <span>Tengo</span>
+              </label>
+              <label className={styles.exportOption}>
+                <input type="checkbox" checked={exportFaltan} onChange={e => setExportFaltan(e.target.checked)} />
+                <span>Faltan</span>
+              </label>
+              <label className={styles.exportOption}>
+                <input type="checkbox" checked={exportRepetidas} onChange={e => setExportRepetidas(e.target.checked)} />
+                <span>Repetidas</span>
+              </label>
+            </div>
+            <div className={styles.modalActions}>
+              <button type="button" onClick={() => setShowExportModal(false)}>Cancelar</button>
+              <button
+                type="button"
+                className={styles.inviteSend}
+                onClick={handleExportConfirm}
+                disabled={!exportTengo && !exportFaltan && !exportRepetidas}
+              >
+                Exportar
+              </button>
+            </div>
           </div>
         </div>
       )}
