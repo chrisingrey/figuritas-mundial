@@ -10,6 +10,7 @@ import {
   signInWithGoogle,
 } from "@/firebase";
 import { useUserLogged } from "@/context";
+import { BookSpinner } from "@/components";
 import styles from "./index.module.scss";
 
 type Mode = "login" | "register";
@@ -94,7 +95,7 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -146,6 +147,7 @@ export default function Auth() {
 
   return (
     <div className={styles.page}>
+      {(loading || googleLoading) && <BookSpinner overlay />}
       <div className={styles.albumPreview} aria-hidden="true">
         <div className={styles.albumCover}>
           <span>OFFICIAL STICKER COLLECTION</span>

@@ -4,6 +4,8 @@ import { albumsService, type AlbumResponse, type AlbumRoleResponse, type MemberR
 import { useUserLogged } from "@/context";
 import { worldCupAlbum } from "@/data/worldCupAlbum";
 import type { WorldCupSticker } from "@/types/album";
+import { useApiCall } from "@/hooks";
+import { BookSpinner, CircleSpinner } from "@/components";
 import styles from "./index.module.scss";
 import { MembersSection } from "./MembersSection";
 import { ProgressSection } from "./ProgressSection";
@@ -64,7 +66,7 @@ export default function Album() {
   const { getAlbumPermissions, setAlbumPermissions } = useUserLogged();
 
   const [album, setAlbum] = useState<AlbumResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { execute: fetchAlbum, loading } = useApiCall(albumsService.getAlbum, { initialLoading: true });
   const [selectedTeamCode, setSelectedTeamCode] = useState("Todos");
   const [stickerMode, setStickerMode] = useState<StickerMode>("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -82,6 +84,8 @@ export default function Album() {
   // Members state
   const [members, setMembers] = useState<MemberResponse[]>([]);
   const [membersLoaded, setMembersLoaded] = useState(false);
+  const { execute: fetchMembersCall, loading: membersLoading } = useApiCall(albumsService.getMembers);
+  const { execute: fetchRolesCall, loading: rolesLoading } = useApiCall(albumsService.getRoles);
   const [selectedMember, setSelectedMember] = useState<MemberResponse | null>(null);
   const [memberRoleId, setMemberRoleId] = useState("");
   const [memberSaving, setMemberSaving] = useState(false);
@@ -104,13 +108,12 @@ export default function Album() {
 
   useEffect(() => {
     if (!albumId) return;
-    albumsService.getAlbum(albumId)
+    fetchAlbum(albumId)
       .then(a => {
         setAlbum(a);
         if (a.permissions) setAlbumPermissions(albumId, a.permissions);
       })
-      .catch(() => navigate("/"))
-      .finally(() => setLoading(false));
+      .catch(() => navigate("/"));
   }, [albumId, navigate, setAlbumPermissions]);
 
   const currentPermissions = albumId ? (album?.permissions ?? getAlbumPermissions(albumId)) : [];
@@ -131,33 +134,26 @@ export default function Album() {
       .catch(() => setMyAlbum(null));
   }, [album, readOnlyAlbum]);
 
-  const loadMembers = async () => {
+  useEffect(() => {
     if (!albumId || membersLoaded || !canViewMembers) return;
-    try {
-      const list = await albumsService.getMembers(albumId);
-      setMembers(list);
-      setMembersLoaded(true);
-    } catch { /* ignore */ }
-  };
+    fetchMembersCall(albumId)
+      .then(list => { setMembers(list); setMembersLoaded(true); })
+      .catch(() => {});
+  }, [albumId, canViewMembers]);
 
-  useEffect(() => { loadMembers(); }, [albumId, canViewMembers]);
-
-  const loadRoles = async () => {
-    if (!albumId || roles.length > 0) return roles;
-    try {
-      const fetched = await albumsService.getRoles(albumId);
-      setRoles(fetched);
-      return fetched;
-    } catch { return []; }
-  };
+  useEffect(() => {
+    if (!albumId || !canViewMembers || roles.length > 0) return;
+    fetchRolesCall(albumId)
+      .then(fetched => { setRoles(fetched); })
+      .catch(() => {});
+  }, [albumId, canViewMembers]);
 
   const openInviteModal = async () => {
     if (!albumId) return;
     setInviteError(""); setInviteSent(false); setInviteEmail("");
     setShowInvite(true);
     if (canInvite) {
-      const fetched = await loadRoles();
-      const list = fetched.length > 0 ? fetched : roles;
+      const list = roles.length > 0 ? roles : await fetchRolesCall(albumId).then(f => { setRoles(f); return f; }).catch(() => [] as AlbumRoleResponse[]);
       if (list.length > 0 && !inviteRoleId) setInviteRoleId(list[0].id);
     }
   };
@@ -181,7 +177,9 @@ export default function Album() {
 
   const openMemberModal = async (member: MemberResponse) => {
     setSelectedMember(member); setMemberRoleId(member.roleId); setMemberError("");
-    await loadRoles();
+    if (albumId && roles.length === 0) {
+      fetchRolesCall(albumId).then(setRoles).catch(() => {});
+    }
   };
 
   const handleUpdateMemberRole = async () => {
@@ -439,7 +437,7 @@ export default function Album() {
     return Array.from(selection).every(code => (statusMap.get(code) ?? "no_tengo") === "pegado");
   }, [selection, statusMap]);
 
-  if (loading) return <div className={styles.loading}>Cargando album...</div>;
+  if (loading) return <BookSpinner overlay />;
 
   return (
     <div className={styles.page}>
@@ -454,6 +452,8 @@ export default function Album() {
             <MembersSection
               members={members}
               roles={roles}
+              membersLoading={membersLoading}
+              rolesLoading={rolesLoading}
               onExport={handleExport}
               onOpenInvite={openInviteModal}
               onOpenMember={openMemberModal}
@@ -569,12 +569,17 @@ export default function Album() {
             <p className={styles.inviteHint}>{selectedMember.email}</p>
             {(canManageMembers || canDeleteMembers) ? (
               <div className={styles.inviteForm}>
-                {canManageMembers && roles.length > 0 && (
-                  <div>
+                {canManageMembers && (
+                  <div className={styles.roleRow}>
                     <label className={styles.fieldLabel}>Rol</label>
-                    <select value={memberRoleId} onChange={e => setMemberRoleId(e.target.value)} className={styles.roleSelect}>
-                      {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
-                    </select>
+                    {rolesLoading
+                      ? <CircleSpinner size={18} />
+                      : (
+                        <select value={memberRoleId} onChange={e => setMemberRoleId(e.target.value)} className={styles.roleSelect}>
+                          {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                        </select>
+                      )
+                    }
                   </div>
                 )}
                 {memberError && <p className={styles.inviteError}>{memberError}</p>}

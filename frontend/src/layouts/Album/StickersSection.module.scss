@@ -126,21 +126,10 @@
 .filterControls {
   position: relative;
   z-index: 45;
-  display: grid;
-  gap: 10px;
-  min-inline-size: 0;
-}
-
-// Desktop: full dropdown + search (hidden on mobile)
-.filterControlsDesktop {
-  display: none;
-}
-
-// Mobile: search with icon + compact code select inline (hidden on desktop)
-.filterControlsMobile {
   display: flex;
   gap: 8px;
   align-items: center;
+  min-inline-size: 0;
 }
 
 .searchWithIcon {
@@ -176,80 +165,10 @@
   }
 }
 
-.teamCodeSelect {
-  flex-shrink: 0;
-  min-height: 44px;
-  padding: 0 10px;
-  background: #ffffff;
-  border: 2px solid #101214;
-  border-radius: 10px;
-  color: #101214;
-  font-size: 13px;
-  font-weight: 900;
-  cursor: pointer;
-  appearance: none;
-  text-align: center;
-  min-width: 60px;
 
-  &:focus {
-    outline: none;
-    border-color: #2368c4;
-    box-shadow: 0 0 0 3px rgba(35, 104, 196, 0.18);
-  }
-}
+// ─── Team code dropdown ───────────────────────────────────────────────────────
 
-.searchInput {
-  width: 100%;
-  min-height: 38px;
-  padding: 0 12px;
-  color: #101214;
-  background: #ffffff;
-  border: 2px solid #101214;
-  border-radius: 7px;
-  font-size: 13px;
-  font-weight: 800;
-  outline: none;
-
-  &:focus {
-    border-color: #2368c4;
-    box-shadow: 0 0 0 4px rgba(35, 104, 196, 0.18);
-  }
-}
-
-// ─── Desktop: dropdown + clear button ────────────────────────────────────────
-
-.dropdownWithClear {
-  position: relative;
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  min-inline-size: 0;
-}
-
-.clearFilterBtn {
-  flex-shrink: 0;
-  align-self: center;
-  min-height: 36px;
-  min-width: 36px;
-  padding: 0;
-  color: #101214;
-  background: #ffffff;
-  border: 2px solid #101214;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 900;
-  cursor: pointer;
-  box-shadow: 2px 2px 0 #101214;
-  transition: background 0.1s;
-
-  &:hover {
-    background: #ffeaea;
-  }
-}
-
-// ─── Mobile: custom mini team dropdown ────────────────────────────────────────
-
-.mobileTeamDropdown {
+.teamDropdown {
   position: relative;
   flex-shrink: 0;
 }
@@ -300,7 +219,7 @@
   box-shadow: 1px 1px 0 rgba(16, 18, 20, 0.2);
 }
 
-.mobileDropdownMenu {
+.dropdownMenu {
   position: absolute;
   top: calc(100% + 6px);
   right: 0;
@@ -533,19 +452,6 @@
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-  }
-
-  .filterControls {
-    grid-template-columns: minmax(260px, 1fr) minmax(220px, 360px);
-    align-items: start;
-  }
-
-  .filterControlsDesktop {
-    display: grid;
-  }
-
-  .filterControlsMobile {
-    display: none;
   }
 
   .stickerGrid {

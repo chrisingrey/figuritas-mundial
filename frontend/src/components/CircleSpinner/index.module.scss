@@ -1,0 +1,22 @@
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  display: inline-block;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    #f7d719 0deg 80deg,
+    #2368c4 80deg 170deg,
+    #b9e461 170deg 260deg,
+    #c51632 260deg 340deg,
+    transparent 340deg 360deg
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent 56%, black 57%);
+  mask: radial-gradient(farthest-side, transparent 56%, black 57%);
+  animation: spin 0.72s linear infinite;
+}

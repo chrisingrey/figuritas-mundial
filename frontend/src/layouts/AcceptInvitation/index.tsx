@@ -1,37 +1,43 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { albumsService, type InvitationResponse } from "@backend";
+import { useApiCall } from "@/hooks";
+import { BookSpinner } from "@/components";
 import styles from "./index.module.scss";
 
 export default function AcceptInvitation() {
   const { albumId, invitationId } = useParams<{ albumId: string; invitationId: string }>();
   const navigate = useNavigate();
   const [invitation, setInvitation] = useState<InvitationResponse | null | undefined>(undefined);
-  const [accepting, setAccepting] = useState(false);
   const [error, setError] = useState("");
   const [accepted, setAccepted] = useState(false);
 
+  const { execute: fetchInvitation, loading: loadingInvitation } = useApiCall(
+    albumsService.getInvitation,
+    { initialLoading: true },
+  );
+  const { execute: acceptInvitationCall, loading: accepting } = useApiCall(albumsService.acceptInvitation);
+
   useEffect(() => {
     if (!albumId || !invitationId) return;
-    albumsService.getInvitation(albumId, invitationId)
+    fetchInvitation(albumId, invitationId)
       .then(setInvitation)
       .catch(() => setInvitation(null));
   }, [albumId, invitationId]);
 
   const handleAccept = async () => {
     if (!albumId || !invitationId) return;
-    setAccepting(true);
     setError("");
     try {
-      await albumsService.acceptInvitation(albumId, invitationId);
+      await acceptInvitationCall(albumId, invitationId);
       setAccepted(true);
       setTimeout(() => navigate("/"), 2000);
     } catch {
       setError("No se pudo aceptar la invitación. Verificá que el email de tu cuenta coincida con el de la invitación.");
-    } finally {
-      setAccepting(false);
     }
   };
+
+  if (loadingInvitation) return <BookSpinner overlay />;
 
   return (
     <div className={styles.page}>
@@ -40,12 +46,6 @@ export default function AcceptInvitation() {
       </header>
 
       <main className={styles.main}>
-        {invitation === undefined && (
-          <div className={styles.card}>
-            <p className={styles.loading}>Cargando invitación...</p>
-          </div>
-        )}
-
         {invitation === null && (
           <div className={styles.card}>
             <h2>Invitación no encontrada</h2>

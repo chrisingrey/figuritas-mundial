@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { StickerStatus } from "@backend";
 import type { WorldCupSticker, WorldCupTeam } from "@/types/album";
-import { TeamCodeDropdown } from "./TeamCodeDropdown";
 import styles from "./StickersSection.module.scss";
 
 type StickerMode = "all" | "no_tengo" | "owned" | "tengo" | "pegado" | "repetidas" | "viewer_needs_my_repeated";
@@ -149,37 +148,7 @@ export function StickersSection({
           <strong>{visibleTeams.length} paises</strong>
         </div>
 
-        {/* Desktop: full dropdown + search */}
-        <div className={`${styles.filterControls} ${styles.filterControlsDesktop}`}>
-          <div className={styles.dropdownWithClear}>
-            <TeamCodeDropdown
-              teams={visibleTeams}
-              selectedTeamCode={selectedTeamCode}
-              selectedGroup="Todos"
-              onSelect={onTeamSelect}
-            />
-            {hasTeamFilter && (
-              <button
-                type="button"
-                className={styles.clearFilterBtn}
-                onClick={() => onTeamSelect("Todos")}
-                aria-label="Quitar filtro de país"
-              >
-                ✕
-              </button>
-            )}
-          </div>
-          <input
-            type="search"
-            className={styles.searchInput}
-            placeholder="Buscar por codigo: MEX, MEX 1, 17"
-            value={searchQuery}
-            onChange={e => onSearchChange(e.target.value)}
-          />
-        </div>
-
-        {/* Mobile: search + compact team selector inline */}
-        <div className={`${styles.filterControls} ${styles.filterControlsMobile}`}>
+        <div className={styles.filterControls}>
           <div className={styles.searchWithIcon}>
             <SearchIcon />
             <input
@@ -190,7 +159,7 @@ export function StickersSection({
               onChange={e => onSearchChange(e.target.value)}
             />
           </div>
-          <div className={styles.mobileTeamDropdown} ref={mobileDropdownRef}>
+          <div className={styles.teamDropdown} ref={mobileDropdownRef}>
             <button
               type="button"
               className={`${styles.teamCodeBtn} ${hasTeamFilter ? styles.teamCodeBtnActive : ""}`}
@@ -210,7 +179,7 @@ export function StickersSection({
               </button>
             )}
             {mobileDropdownOpen && (
-              <div className={styles.mobileDropdownMenu}>
+              <div className={styles.dropdownMenu}>
                 <button
                   type="button"
                   className={!hasTeamFilter ? styles.mobileOptionActive : styles.mobileOption}

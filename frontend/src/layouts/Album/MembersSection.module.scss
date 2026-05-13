@@ -154,17 +154,29 @@
   white-space: nowrap;
 }
 
-.memberRole {
-  display: block;
-  color: #5a5d63;
-  font-size: 11px;
-  font-weight: 700;
+.memberRoleTag {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.roleLabel {
+  padding: 3px 8px;
+  color: #101214;
+  background: #ffffff;
+  border: 2px solid #101214;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 900;
+  white-space: nowrap;
 }
 
 .memberChevron {
   color: #5a5d63;
   font-size: 18px;
   font-weight: 300;
+  flex-shrink: 0;
 }
 
 .emptyMembers {
@@ -172,4 +184,54 @@
   color: #5a5d63;
   font-size: 13px;
   font-weight: 700;
+}
+
+// ─── Skeleton loading cards ────────────────────────────────────────────────────
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeletonCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 2px solid #e8e7e0;
+  border-radius: 8px;
+}
+
+.skeletonAvatar {
+  flex: 0 0 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #e8e7e0 25%, #f5f4ef 50%, #e8e7e0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.skeletonLines {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.skeletonName {
+  height: 13px;
+  width: 60%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #e8e7e0 25%, #f5f4ef 50%, #e8e7e0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.skeletonRole {
+  flex-shrink: 0;
+  height: 22px;
+  width: 52px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #e8e7e0 25%, #f5f4ef 50%, #e8e7e0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite 0.15s;
 }

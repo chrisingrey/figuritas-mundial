@@ -3,6 +3,8 @@ import { useParams } from "react-router-dom";
 import { albumsService, type AlbumResponse, type StickerStatus } from "@backend";
 import { worldCupAlbum } from "@/data/worldCupAlbum";
 import type { WorldCupSticker } from "@/types/album";
+import { useApiCall } from "@/hooks";
+import { BookSpinner } from "@/components";
 import styles from "./index.module.scss";
 
 type StickerMode = "all" | "tengo" | "no_tengo";
@@ -31,18 +33,18 @@ const matchesStickerSearch = (sticker: WorldCupSticker, query: string) => {
 export default function SharedAlbum() {
   const { shareToken } = useParams<{ shareToken: string }>();
   const [album, setAlbum] = useState<AlbumResponse | null>(null);
-  const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState("Todos");
   const [stickerMode, setStickerMode] = useState<StickerMode>("all");
   const [searchQuery, setSearchQuery] = useState("");
 
+  const { execute: fetchSharedAlbum, loading } = useApiCall(albumsService.getSharedAlbum, { initialLoading: true });
+
   useEffect(() => {
     if (!shareToken) return;
-    albumsService.getSharedAlbum(shareToken)
+    fetchSharedAlbum(shareToken)
       .then(setAlbum)
-      .catch(() => setNotFound(true))
-      .finally(() => setLoading(false));
+      .catch(() => setNotFound(true));
   }, [shareToken]);
 
   const statusMap = useMemo(() => {
@@ -81,7 +83,7 @@ export default function SharedAlbum() {
   const totalCount = album?.totalCount ?? 980;
   const pct = Math.round((ownedCount / totalCount) * 100);
 
-  if (loading) return <div className={styles.center}>Cargando álbum compartido...</div>;
+  if (loading) return <BookSpinner overlay />;
   if (notFound) return <div className={styles.center}>Este álbum no existe o el enlace expiró.</div>;
 
   return (
