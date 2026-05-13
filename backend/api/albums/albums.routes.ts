@@ -18,10 +18,16 @@ import {
   getMembers,
   updateMemberRole,
   removeMember,
+  leaveViewerAlbum,
   getInvitations,
   createInvitation,
   getInvitationById,
   acceptInvitation,
+  createAccessRequest,
+  getAccessRequests,
+  acceptAccessRequest,
+  rejectAccessRequest,
+  getMemberManagedAlbums,
 } from "./albums.controller";
 
 const router = Router();
@@ -39,6 +45,8 @@ router.patch("/:albumId", userAuthenticationFilter, memberAuthorizationFilter(":
 
 // Share
 router.post("/:albumId/share", userAuthenticationFilter, memberAuthorizationFilter(":albumId", PermissionName.CREATE_ALBUM_INVITATION), shareAlbumWithViewer);
+router.post("/:albumId/access-requests", userAuthenticationFilter, createAccessRequest);
+router.delete("/:albumId/leave", userAuthenticationFilter, leaveViewerAlbum);
 
 // Stickers
 router.patch("/:albumId/stickers", userAuthenticationFilter, memberAuthorizationFilter(":albumId", PermissionName.UPDATE_BY_ID_ALBUM), bulkUpdateStickers);
@@ -52,12 +60,17 @@ router.delete("/:albumId/roles/:roleId", userAuthenticationFilter, memberAuthori
 
 // Members
 router.get("/:albumId/members", userAuthenticationFilter, memberAuthorizationFilter(":albumId", PermissionName.GET_ALL_MEMBER), getMembers);
+router.get("/:albumId/members/:memberId/managed-albums", userAuthenticationFilter, memberAuthorizationFilter(":albumId", PermissionName.GET_ALL_MEMBER), getMemberManagedAlbums);
+router.delete("/:albumId/members/me", userAuthenticationFilter, leaveViewerAlbum);
 router.patch("/:albumId/members/:memberId", userAuthenticationFilter, memberAuthorizationFilter(":albumId", PermissionName.UPDATE_BY_ID_MEMBER), updateMemberRole);
 router.delete("/:albumId/members/:memberId", userAuthenticationFilter, memberAuthorizationFilter(":albumId", PermissionName.DELETE_BY_ID_MEMBER), removeMember);
 
 // Invitations (member-scoped management)
 router.get("/:albumId/member-invites", userAuthenticationFilter, memberAuthorizationFilter(":albumId", PermissionName.GET_ALL_ALBUM_INVITATION), getInvitations);
 router.post("/:albumId/member-invites", userAuthenticationFilter, memberAuthorizationFilter(":albumId", PermissionName.CREATE_ALBUM_INVITATION), createInvitation);
+router.get("/:albumId/access-requests", userAuthenticationFilter, memberAuthorizationFilter(":albumId", PermissionName.GET_ALL_MEMBER), getAccessRequests);
+router.post("/:albumId/access-requests/:requestId/accept", userAuthenticationFilter, memberAuthorizationFilter(":albumId", PermissionName.CREATE_ALBUM_INVITATION), acceptAccessRequest);
+router.post("/:albumId/access-requests/:requestId/reject", userAuthenticationFilter, memberAuthorizationFilter(":albumId", PermissionName.CREATE_ALBUM_INVITATION), rejectAccessRequest);
 
 // Invitation accept flow (auth only — user is not yet a member)
 router.get("/:albumId/invitations/:invitationId", userAuthenticationFilter, getInvitationById);

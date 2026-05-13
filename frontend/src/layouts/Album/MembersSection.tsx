@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { MemberResponse, AlbumRoleResponse } from "@backend";
+import type { MemberResponse, AlbumRoleResponse, AlbumRequestResponse } from "@backend";
 import { CircleSpinner } from "@/components";
 import styles from "./MembersSection.module.scss";
 
@@ -19,15 +19,37 @@ type Props = {
   onExport: () => void;
   onOpenInvite: () => void;
   onOpenMember: (m: MemberResponse) => void;
+  requests: AlbumRequestResponse[];
+  requestsLoading: boolean;
+  canManageRequests: boolean;
+  onAcceptRequest: (request: AlbumRequestResponse) => void;
+  onRejectRequest: (request: AlbumRequestResponse) => void;
 };
 
-export function MembersSection({ members, roles, membersLoading, rolesLoading, onExport, onOpenInvite, onOpenMember }: Props) {
+export function MembersSection({
+  members,
+  roles,
+  membersLoading,
+  rolesLoading,
+  onExport,
+  onOpenInvite,
+  onOpenMember,
+  requests,
+  requestsLoading,
+  canManageRequests,
+  onAcceptRequest,
+  onRejectRequest,
+}: Props) {
   const [expanded, setExpanded] = useState(() => window.matchMedia("(min-width: 760px)").matches);
 
   const getDisplayName = (m: MemberResponse) =>
     m.fullname ? `${m.fullname}${m.surname ? ` ${m.surname}` : ""}` : m.email;
 
   const getRoleName = (m: MemberResponse) => roles.find(r => r.id === m.roleId)?.name ?? "—";
+  const getRequestDisplayName = (request: AlbumRequestResponse) =>
+    request.requesterFullname
+      ? `${request.requesterFullname}${request.requesterSurname ? ` ${request.requesterSurname}` : ""}`
+      : request.requesterEmail;
 
   return (
     <div className={styles.sectionBlock}>
@@ -71,6 +93,21 @@ export function MembersSection({ members, roles, membersLoading, rolesLoading, o
             </div>
           ) : (
             <div className={styles.memberList}>
+              {requests.map(request => (
+                <div key={request.id} className={styles.requestCard}>
+                  <div className={styles.memberAvatar}>{(request.requesterFullname ?? request.requesterEmail).charAt(0).toUpperCase()}</div>
+                  <div className={styles.memberInfo}>
+                    <span className={styles.memberName}>{getRequestDisplayName(request)}</span>
+                    <span className={styles.requestText}>quiere unirse como Viewer</span>
+                  </div>
+                  {canManageRequests && (
+                    <div className={styles.requestActions}>
+                      <button type="button" className={styles.rejectRequestBtn} onClick={() => onRejectRequest(request)} aria-label="Rechazar solicitud">×</button>
+                      <button type="button" className={styles.acceptRequestBtn} onClick={() => onAcceptRequest(request)} aria-label="Aceptar solicitud">✓</button>
+                    </div>
+                  )}
+                </div>
+              ))}
               {members.map(m => (
                 <button key={m.id} type="button" className={styles.memberCard} onClick={() => onOpenMember(m)}>
                   <div className={styles.memberAvatar}>{(m.fullname ?? m.email).charAt(0).toUpperCase()}</div>
@@ -86,7 +123,8 @@ export function MembersSection({ members, roles, membersLoading, rolesLoading, o
                   <span className={styles.memberChevron}>›</span>
                 </button>
               ))}
-              {members.length === 0 && <p className={styles.emptyMembers}>Sin miembros cargados.</p>}
+              {requestsLoading && <p className={styles.emptyMembers}>Cargando solicitudes...</p>}
+              {members.length === 0 && requests.length === 0 && <p className={styles.emptyMembers}>Sin miembros cargados.</p>}
             </div>
           )}
         </>

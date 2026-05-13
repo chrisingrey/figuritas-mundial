@@ -41,6 +41,11 @@ import {
   type AlbumInvitation,
 } from "@businessLogic/albumInvite";
 import {
+  AlbumRequestService,
+  type IAlbumRequestService,
+  type AlbumRequest,
+} from "@businessLogic/albumRequest";
+import {
   PermissionService,
   type IPermissionService,
   type Permission,
@@ -64,6 +69,7 @@ interface Services {
   albumRoleService: IAlbumRoleService;
   memberService: IMemberService;
   albumInviteService: IAlbumInviteService;
+  albumRequestService: IAlbumRequestService;
   permissionService: IPermissionService;
   worldCupAlbumService: IWorldCupAlbumService;
 }
@@ -115,6 +121,9 @@ function setupMongoServices(
   );
   const invitationRepository = new Repository<AlbumInvitation>(
     db.collection("albumInvitations"),
+  );
+  const albumRequestRepository = new Repository<AlbumRequest>(
+    db.collection("albumRequests"),
   );
 
   // ─── Auth services ──────────────────────────────────────────────────────
@@ -169,5 +178,11 @@ function setupMongoServices(
     userRepository,
     messagingService,
     services.notificationService,
+  );
+  services.albumRequestService = new AlbumRequestService(
+    albumRequestRepository,
+    albumRepository,
+    memberRepository,
+    userRepository,
   );
 }

@@ -127,6 +127,19 @@
   }
 }
 
+.requestCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-inline-size: 0;
+  padding: 8px 10px;
+  background: #fff8d7;
+  border: 2px solid #101214;
+  border-radius: 8px;
+  text-align: left;
+}
+
 .memberAvatar {
   flex: 0 0 32px;
   height: 32px;
@@ -152,6 +165,45 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.requestText {
+  display: block;
+  margin-top: 2px;
+  color: #5a5d63;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.requestActions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 6px;
+}
+
+.acceptRequestBtn,
+.rejectRequestBtn {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #101214;
+  border-radius: 999px;
+  box-shadow: 2px 2px 0 #101214;
+  color: #101214;
+  font-size: 18px;
+  font-weight: 1000;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.acceptRequestBtn {
+  background: #68d391;
+}
+
+.rejectRequestBtn {
+  background: #ff8a8a;
 }
 
 .memberRoleTag {

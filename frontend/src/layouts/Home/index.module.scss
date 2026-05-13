@@ -149,6 +149,7 @@
 }
 
 .book {
+  position: relative;
   width: 100%;
   transform-origin: left center;
   transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
@@ -164,6 +165,39 @@
 
   &.opening {
     transform: rotateY(-90deg);
+  }
+}
+
+.leaveAlbumBtn {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  color: #ffffff;
+  background: #c51632;
+  border: 2px solid #101214;
+  border-radius: 999px;
+  box-shadow: 3px 3px 0 #101214;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+
+  &:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 #101214;
+  }
+
+  &:active {
+    transform: translate(1px, 1px);
+    box-shadow: 2px 2px 0 #101214;
+  }
+
+  &:disabled {
+    opacity: 0.58;
+    cursor: not-allowed;
   }
 }
 
@@ -357,6 +391,85 @@
   font-size: 13px;
   font-weight: 900;
   cursor: pointer;
+}
+
+// ─── Leave album modal ───────────────────────────────────────────────────────
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(16, 18, 20, 0.56);
+}
+
+.leaveModal {
+  width: min(100%, 420px);
+  padding: 22px 20px;
+  background: #ffffff;
+  border: 2px solid #101214;
+  border-radius: 8px;
+  box-shadow: 6px 6px 0 rgba(16, 18, 20, 0.22);
+
+  h3 {
+    margin: 0 0 10px;
+    color: #101214;
+    font-size: 20px;
+    font-weight: 1000;
+    text-transform: uppercase;
+  }
+
+  p {
+    margin: 0;
+    color: #5a5d63;
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.45;
+  }
+
+  strong {
+    color: #101214;
+  }
+}
+
+.leaveError {
+  margin-top: 12px !important;
+  color: #c51632 !important;
+  font-size: 13px !important;
+  font-weight: 900 !important;
+}
+
+.leaveActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+
+  button {
+    min-height: 40px;
+    padding: 0 16px;
+    color: #101214;
+    background: #ffffff;
+    border: 2px solid #101214;
+    border-radius: 7px;
+    font-size: 14px;
+    font-weight: 900;
+    cursor: pointer;
+
+    &:disabled {
+      opacity: 0.58;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.leaveConfirmBtn {
+  color: #ffffff !important;
+  background: #c51632 !important;
+  box-shadow: 3px 3px 0 #101214;
 }
 
 // ─── Empty state ──────────────────────────────────────────────────────────────

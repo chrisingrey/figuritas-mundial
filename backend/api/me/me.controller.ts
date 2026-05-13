@@ -21,6 +21,9 @@ import { mapNotificationResponse } from "./NotificationResponse";
 import { mapNotificationPageResponse } from "./NotificationResponse";
 import { mapMyAlbumMembershipResponse } from "./MyAlbumMembershipResponse";
 import type { AlbumInvitationWithAlbumName } from "@businessLogic/albumInvite";
+import { AppError, ErrorCode } from "@errors";
+
+const VIEWER_ROLE_NAME = "Viewer";
 
 export const getCurrentUser = asyncHandler(async (
   req: Request,
@@ -125,6 +128,27 @@ export const getMyAlbums = asyncHandler(async (
   const userId = getAuthenticatedUserId(req);
   const memberships = await services.memberService.getMyMemberships(userId);
   res.status(200).json(memberships.map(mapMyAlbumMembershipResponse));
+});
+
+export const leaveMyViewerAlbum = asyncHandler(async (
+  req: Request,
+  res: Response,
+  _next: NextFunction,
+) => {
+  const userId = getAuthenticatedUserId(req);
+  const { albumId } = req.params;
+  const member = await services.memberService.getMemberWithRole(albumId, userId);
+
+  if (!member) {
+    throw new AppError(404, ErrorCode.RESOURCE_NOT_FOUND, "Member not found.");
+  }
+
+  if (member.role?.name.toLowerCase() !== VIEWER_ROLE_NAME.toLowerCase()) {
+    throw new AppError(403, ErrorCode.UNAUTHORIZED, "Only viewers can leave an album from this action.");
+  }
+
+  await services.memberService.removeMember(albumId, member.id);
+  res.status(204).send();
 });
 
 export const getPagedNotifications = asyncHandler(async (

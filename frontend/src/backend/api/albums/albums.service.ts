@@ -1,5 +1,5 @@
 import { ApiRepository } from "../api-repository";
-import type { AlbumResponse, CreateAlbumRequest, MemberResponse, InviteMemberRequest, InvitationResponse, AlbumRoleResponse } from "./models";
+import type { AlbumResponse, CreateAlbumRequest, MemberResponse, InviteMemberRequest, InvitationResponse, AlbumRoleResponse, AlbumRequestResponse, ManagedAlbumForRequestResponse } from "./models";
 
 const BASE_URI = "/api/albums";
 const api = new ApiRepository(BASE_URI);
@@ -37,8 +37,32 @@ export const albumsService = {
     await api.delete(`/${albumId}/members/${memberId}`);
   },
 
+  async leaveViewerAlbum(albumId: string): Promise<void> {
+    await api.delete(`/${albumId}/leave`);
+  },
+
   async inviteMember(albumId: string, request: InviteMemberRequest): Promise<void> {
     await api.post<InviteMemberRequest, unknown>(request, `/${albumId}/member-invites`);
+  },
+
+  async getAccessRequests(albumId: string): Promise<AlbumRequestResponse[]> {
+    return api.get<AlbumRequestResponse[]>(`/${albumId}/access-requests`);
+  },
+
+  async createAccessRequest(albumId: string): Promise<AlbumRequestResponse> {
+    return api.post<Record<string, never>, AlbumRequestResponse>({}, `/${albumId}/access-requests`);
+  },
+
+  async acceptAccessRequest(albumId: string, requestId: string): Promise<AlbumRequestResponse> {
+    return api.post<Record<string, never>, AlbumRequestResponse>({}, `/${albumId}/access-requests/${requestId}/accept`);
+  },
+
+  async rejectAccessRequest(albumId: string, requestId: string): Promise<AlbumRequestResponse> {
+    return api.post<Record<string, never>, AlbumRequestResponse>({}, `/${albumId}/access-requests/${requestId}/reject`);
+  },
+
+  async getMemberManagedAlbums(albumId: string, memberId: string): Promise<ManagedAlbumForRequestResponse[]> {
+    return api.get<ManagedAlbumForRequestResponse[]>(`/${albumId}/members/${memberId}/managed-albums`);
   },
 
   async bulkUpdateStickers(albumId: string, codes: string[], status: import("./models").StickerStatus): Promise<AlbumResponse> {

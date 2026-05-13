@@ -7,6 +7,7 @@ import { mapAlbumResponse } from "./AlbumResponse";
 import { mapAlbumRoleResponse } from "./AlbumRoleResponse";
 import { mapAlbumMemberResponse } from "./AlbumMemberResponse";
 import { mapAlbumInvitationResponse } from "./AlbumInvitationResponse";
+import { mapAlbumRequestResponse, mapManagedAlbumForRequestResponse } from "./AlbumRequestResponse";
 import type { CreateAlbumArgs } from "@businessLogic/albums";
 import type { CreateAlbumRoleArgs, PatchAlbumRoleArgs } from "@businessLogic/albumRole";
 import type { UpdateMemberRoleArgs } from "@businessLogic/members";
@@ -144,6 +145,27 @@ export const removeMember = asyncHandler(async (
   const { albumId } = toAuthorizedMemberRequest(req).authorizedMember;
   const { memberId } = req.params;
   await services.memberService.removeMember(albumId, memberId);
+  res.status(204).send();
+});
+
+export const leaveViewerAlbum = asyncHandler(async (
+  req: Request,
+  res: Response,
+  _next: NextFunction,
+) => {
+  const { albumId } = req.params;
+  const userId = getAuthenticatedUserId(req);
+  const member = await services.memberService.getMemberWithRole(albumId, userId);
+
+  if (!member) {
+    throw new AppError(404, ErrorCode.RESOURCE_NOT_FOUND, "Member not found.");
+  }
+
+  if (member.role?.name.toLowerCase() !== VIEWER_ROLE_NAME.toLowerCase()) {
+    throw new AppError(403, ErrorCode.UNAUTHORIZED, "Only viewers can leave an album from this action.");
+  }
+
+  await services.memberService.removeMember(albumId, member.id);
   res.status(204).send();
 });
 
@@ -299,4 +321,71 @@ export const createInvitation = asyncHandler(async (
     invitedByUserId,
   });
   res.status(201).json(mapAlbumInvitationResponse(invitation));
+});
+
+// ─── Access requests ─────────────────────────────────────────────────────────
+
+export const createAccessRequest = asyncHandler(async (
+  req: Request,
+  res: Response,
+  _next: NextFunction,
+) => {
+  const { albumId } = req.params;
+  const requesterUserId = getAuthenticatedUserId(req);
+  const request = await services.albumRequestService.createRequest(albumId, requesterUserId);
+  res.status(201).json(mapAlbumRequestResponse(request));
+});
+
+export const getAccessRequests = asyncHandler(async (
+  req: Request,
+  res: Response,
+  _next: NextFunction,
+) => {
+  const { albumId } = toAuthorizedMemberRequest(req).authorizedMember;
+  const requests = await services.albumRequestService.getRequests(albumId);
+  res.status(200).json(requests.map(mapAlbumRequestResponse));
+});
+
+export const acceptAccessRequest = asyncHandler(async (
+  req: Request,
+  res: Response,
+  _next: NextFunction,
+) => {
+  const { albumId } = toAuthorizedMemberRequest(req).authorizedMember;
+  const { requestId } = req.params;
+  const resolvedByUserId = getAuthenticatedUserId(req);
+  const viewerRole = await getOrCreateViewerRole(albumId);
+  const request = await services.albumRequestService.acceptRequest(albumId, requestId, resolvedByUserId, viewerRole.id);
+  res.status(200).json(mapAlbumRequestResponse(request));
+});
+
+export const rejectAccessRequest = asyncHandler(async (
+  req: Request,
+  res: Response,
+  _next: NextFunction,
+) => {
+  const { albumId } = toAuthorizedMemberRequest(req).authorizedMember;
+  const { requestId } = req.params;
+  const resolvedByUserId = getAuthenticatedUserId(req);
+  const request = await services.albumRequestService.rejectRequest(albumId, requestId, resolvedByUserId);
+  res.status(200).json(mapAlbumRequestResponse(request));
+});
+
+export const getMemberManagedAlbums = asyncHandler(async (
+  req: Request,
+  res: Response,
+  _next: NextFunction,
+) => {
+  const { memberId } = req.params;
+  const currentUserId = getAuthenticatedUserId(req);
+  const { albumId } = toAuthorizedMemberRequest(req).authorizedMember;
+  const members = await services.memberService.getMembers(albumId);
+  const member = members.find((m) => m.id === memberId);
+
+  if (!member) {
+    throw new AppError(404, ErrorCode.RESOURCE_NOT_FOUND, "Member not found.");
+  }
+
+  const albums = await services.albumRequestService.getManagedAlbumsForUser(member.userId, currentUserId);
+  res.status(200).json(albums.map(mapManagedAlbumForRequestResponse));
 });

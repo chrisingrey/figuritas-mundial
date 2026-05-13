@@ -27,6 +27,10 @@ export const meService = {
     return api.get<MyAlbumMembershipResponse[]>("/albums");
   },
 
+  async leaveViewerAlbum(albumId: string): Promise<void> {
+    await api.delete(`/albums/${albumId}`);
+  },
+
   async getMyInvitations(): Promise<MyInvitationResponse[]> {
     return api.get<MyInvitationResponse[]>("/invitations");
   },

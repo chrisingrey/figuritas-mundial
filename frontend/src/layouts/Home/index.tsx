@@ -37,6 +37,15 @@ function ProfileIcon() {
   );
 }
 
+function LeaveAlbumIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="18" height="18" aria-hidden="true">
+      <path d="M9 7V5.5A2.5 2.5 0 0 1 11.5 3H18v18h-6.5A2.5 2.5 0 0 1 9 18.5V17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M4 12h9M4 12l3-3M4 12l3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export default function Home() {
   const navigate = useNavigate();
   const { user, logout } = useUserLogged();
@@ -48,6 +57,9 @@ export default function Home() {
   const [createError, setCreateError] = useState("");
   const [openingAlbumId, setOpeningAlbumId] = useState<string | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [leavingAlbumId, setLeavingAlbumId] = useState<string | null>(null);
+  const [leaveCandidate, setLeaveCandidate] = useState<MyAlbumMembershipResponse | null>(null);
+  const [leaveError, setLeaveError] = useState("");
 
   const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -86,6 +98,29 @@ export default function Home() {
     if (openingAlbumId) return;
     setOpeningAlbumId(albumId);
     setTimeout(() => navigate(`/album/${albumId}`), 480);
+  };
+
+  const openLeaveModal = (e: React.MouseEvent<HTMLButtonElement>, membership: MyAlbumMembershipResponse) => {
+    e.stopPropagation();
+    setLeaveCandidate(membership);
+    setLeaveError("");
+  };
+
+  const handleLeaveViewerAlbum = async () => {
+    if (!leaveCandidate) return;
+    if (leavingAlbumId) return;
+
+    setLeavingAlbumId(leaveCandidate.albumId);
+    setLeaveError("");
+    try {
+      await meService.leaveViewerAlbum(leaveCandidate.albumId);
+      setMemberships(prev => prev.filter(m => m.albumId !== leaveCandidate.albumId));
+      setLeaveCandidate(null);
+    } catch {
+      setLeaveError("No se pudo salir del album. Intentá de nuevo.");
+    } finally {
+      setLeavingAlbumId(null);
+    }
   };
 
   const initials = getInitials(user?.fullname, user?.email);
@@ -143,6 +178,19 @@ export default function Home() {
                       onKeyDown={e => e.key === "Enter" && handleOpen(m.albumId)}
                       aria-label={`Abrir album ${m.albumName}`}
                     >
+                      {!m.isOwner && m.roleName.toLowerCase() === "viewer" && (
+                        <button
+                          type="button"
+                          className={styles.leaveAlbumBtn}
+                          onClick={e => openLeaveModal(e, m)}
+                          onKeyDown={e => e.stopPropagation()}
+                          disabled={leavingAlbumId === m.albumId}
+                          aria-label={`Salir del album ${m.albumName}`}
+                          title="Salir del album"
+                        >
+                          <LeaveAlbumIcon />
+                        </button>
+                      )}
                       <div className={styles.coverInner}>
                         <div className={styles.coverContent}>
                           <div className={styles.coverHeader}>
@@ -236,6 +284,36 @@ export default function Home() {
           </section>
         </div>
       </main>
+
+      {leaveCandidate && (
+        <div className={styles.modalOverlay} onClick={() => !leavingAlbumId && setLeaveCandidate(null)}>
+          <div className={styles.leaveModal} onClick={e => e.stopPropagation()}>
+            <h3>Salir del album</h3>
+            <p>
+              Vas a dejar de ser viewer de <strong>{leaveCandidate.albumName}</strong>.
+              El album va a desaparecer de tus albums.
+            </p>
+            {leaveError && <p className={styles.leaveError}>{leaveError}</p>}
+            <div className={styles.leaveActions}>
+              <button
+                type="button"
+                onClick={() => setLeaveCandidate(null)}
+                disabled={Boolean(leavingAlbumId)}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className={styles.leaveConfirmBtn}
+                onClick={handleLeaveViewerAlbum}
+                disabled={Boolean(leavingAlbumId)}
+              >
+                {leavingAlbumId ? "Saliendo..." : "Salir"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

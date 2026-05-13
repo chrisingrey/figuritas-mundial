@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { albumsService, type AlbumResponse, type AlbumRoleResponse, type MemberResponse, type StickerStatus } from "@backend";
+import { albumsService, type AlbumResponse, type AlbumRoleResponse, type AlbumRequestResponse, type ManagedAlbumForRequestResponse, type MemberResponse, type StickerStatus } from "@backend";
 import { useUserLogged } from "@/context";
 import { worldCupAlbum } from "@/data/worldCupAlbum";
 import type { WorldCupSticker } from "@/types/album";
@@ -86,10 +86,15 @@ export default function Album() {
   const [membersLoaded, setMembersLoaded] = useState(false);
   const { execute: fetchMembersCall, loading: membersLoading } = useApiCall(albumsService.getMembers);
   const { execute: fetchRolesCall, loading: rolesLoading } = useApiCall(albumsService.getRoles);
+  const { execute: fetchAccessRequestsCall, loading: requestsLoading } = useApiCall(albumsService.getAccessRequests);
   const [selectedMember, setSelectedMember] = useState<MemberResponse | null>(null);
   const [memberRoleId, setMemberRoleId] = useState("");
   const [memberSaving, setMemberSaving] = useState(false);
   const [memberError, setMemberError] = useState("");
+  const [accessRequests, setAccessRequests] = useState<AlbumRequestResponse[]>([]);
+  const [managedAlbums, setManagedAlbums] = useState<ManagedAlbumForRequestResponse[]>([]);
+  const [managedAlbumsLoading, setManagedAlbumsLoading] = useState(false);
+  const [requestingAlbumId, setRequestingAlbumId] = useState("");
 
   // Invite modal state
   const [showInvite, setShowInvite] = useState(false);
@@ -142,6 +147,13 @@ export default function Album() {
   }, [albumId, canViewMembers]);
 
   useEffect(() => {
+    if (!albumId || !canViewMembers) return;
+    fetchAccessRequestsCall(albumId)
+      .then(setAccessRequests)
+      .catch(() => {});
+  }, [albumId, canViewMembers]);
+
+  useEffect(() => {
     if (!albumId || !canViewMembers || roles.length > 0) return;
     fetchRolesCall(albumId)
       .then(fetched => { setRoles(fetched); })
@@ -177,8 +189,56 @@ export default function Album() {
 
   const openMemberModal = async (member: MemberResponse) => {
     setSelectedMember(member); setMemberRoleId(member.roleId); setMemberError("");
+    setManagedAlbums([]); setManagedAlbumsLoading(true);
     if (albumId && roles.length === 0) {
       fetchRolesCall(albumId).then(setRoles).catch(() => {});
+    }
+    if (albumId) {
+      albumsService.getMemberManagedAlbums(albumId, member.id)
+        .then(setManagedAlbums)
+        .catch(() => setManagedAlbums([]))
+        .finally(() => setManagedAlbumsLoading(false));
+    } else {
+      setManagedAlbumsLoading(false);
+    }
+  };
+
+  const handleRequestAccess = async (targetAlbumId: string) => {
+    setRequestingAlbumId(targetAlbumId); setMemberError("");
+    try {
+      const request = await albumsService.createAccessRequest(targetAlbumId);
+      setManagedAlbums(prev => prev.map(a =>
+        a.id === targetAlbumId ? { ...a, pendingRequestId: request.id } : a,
+      ));
+    } catch {
+      setMemberError("No se pudo solicitar acceso.");
+    } finally {
+      setRequestingAlbumId("");
+    }
+  };
+
+  const handleAcceptAccessRequest = async (request: AlbumRequestResponse) => {
+    if (!albumId) return;
+    try {
+      await albumsService.acceptAccessRequest(albumId, request.id);
+      const [updatedMembers, updatedRequests] = await Promise.all([
+        albumsService.getMembers(albumId),
+        albumsService.getAccessRequests(albumId),
+      ]);
+      setMembers(updatedMembers);
+      setAccessRequests(updatedRequests);
+    } catch {
+      alert("No se pudo aceptar la solicitud.");
+    }
+  };
+
+  const handleRejectAccessRequest = async (request: AlbumRequestResponse) => {
+    if (!albumId) return;
+    try {
+      await albumsService.rejectAccessRequest(albumId, request.id);
+      setAccessRequests(prev => prev.filter(r => r.id !== request.id));
+    } catch {
+      alert("No se pudo rechazar la solicitud.");
     }
   };
 
@@ -454,9 +514,14 @@ export default function Album() {
               roles={roles}
               membersLoading={membersLoading}
               rolesLoading={rolesLoading}
+              requests={accessRequests}
+              requestsLoading={requestsLoading}
+              canManageRequests={canInvite}
               onExport={handleExport}
               onOpenInvite={openInviteModal}
               onOpenMember={openMemberModal}
+              onAcceptRequest={handleAcceptAccessRequest}
+              onRejectRequest={handleRejectAccessRequest}
             />
             <ProgressSection
               ownedCount={ownedCount}
@@ -567,6 +632,41 @@ export default function Album() {
           <div className={styles.modal} onClick={e => e.stopPropagation()}>
             <h3>{selectedMember.fullname ? `${selectedMember.fullname}${selectedMember.surname ? ` ${selectedMember.surname}` : ""}` : selectedMember.email}</h3>
             <p className={styles.inviteHint}>{selectedMember.email}</p>
+            <div className={styles.memberRoleSummary}>
+              <span>Rol</span>
+              <strong>{roles.find(r => r.id === selectedMember.roleId)?.name ?? "—"}</strong>
+            </div>
+            <div className={styles.managedAlbums}>
+              <h4>Álbumes que administra</h4>
+              {managedAlbumsLoading ? (
+                <div className={styles.managedAlbumLoading}><CircleSpinner size={16} /> Cargando álbumes...</div>
+              ) : managedAlbums.length > 0 ? (
+                managedAlbums.map(managedAlbum => (
+                  <div key={managedAlbum.id} className={styles.managedAlbumRow}>
+                    <div>
+                      <span>{managedAlbum.name}</span>
+                      <small>{managedAlbum.roleName}</small>
+                    </div>
+                    {managedAlbum.isCurrentUserMember ? (
+                      <span className={styles.memberAlreadyTag}>Ya sos miembro</span>
+                    ) : managedAlbum.pendingRequestId ? (
+                      <span className={styles.memberAlreadyTag}>Solicitud pendiente</span>
+                    ) : (
+                      <button
+                        type="button"
+                        className={styles.requestAccessBtn}
+                        onClick={() => handleRequestAccess(managedAlbum.id)}
+                        disabled={requestingAlbumId === managedAlbum.id}
+                      >
+                        {requestingAlbumId === managedAlbum.id ? "Solicitando..." : "Request access"}
+                      </button>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <p className={styles.emptyManagedAlbums}>No administra otros álbumes.</p>
+              )}
+            </div>
             {(canManageMembers || canDeleteMembers) ? (
               <div className={styles.inviteForm}>
                 {canManageMembers && (
