@@ -585,32 +585,23 @@
   bottom: max(16px, env(safe-area-inset-bottom));
   z-index: 50;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
   width: calc(100vw - 32px);
-  max-width: 420px;
+  max-width: 380px;
   transform: translateX(-50%);
-  padding: 10px;
+  padding: 10px 12px;
   background: rgba(255, 255, 255, 0.98);
   border: 2px solid #101214;
-  border-radius: 20px;
+  border-radius: 16px;
   box-shadow: 4px 5px 0 rgba(16, 18, 20, 0.18);
 }
 
-.selectionButtons {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  width: 100%;
-  order: 0;
-}
-
 .selectionClearBtn {
-  order: 1;
-  flex: 0 0 auto;
+  flex-shrink: 0;
   min-height: 30px;
-  padding: 0 14px;
+  padding: 0 12px;
   color: #5a5d63;
   background: transparent;
   border: 1.5px solid #c8c9cc;
@@ -631,11 +622,20 @@
   }
 }
 
+.selectionButtons {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 5px;
+  min-width: 0;
+}
+
 .bulkBtn {
-  min-height: 34px;
+  width: 100%;
+  min-height: 32px;
   padding: 0 12px;
   border: 2px solid #101214;
-  border-radius: 999px;
+  border-radius: 8px;
   font-size: 11px;
   font-weight: 900;
   cursor: pointer;
@@ -649,8 +649,8 @@
 }
 
 .bulkBtn_primary {
-  color: #ffffff;
-  background: #2368c4;
+  color: #101214;
+  background: #b9e461;
 }
 
 .bulkBtn_yellow {
@@ -661,6 +661,11 @@
 .bulkBtn_danger {
   color: #ffffff;
   background: #c51632;
+}
+
+.bulkBtn_repeated {
+  color: #ffffff;
+  background: #2368c4;
 }
 
 .bulkBtn_ghost {
@@ -1205,23 +1210,17 @@
   }
 
   .selectionActions {
-    flex-direction: row;
-    align-items: center;
     max-width: 640px;
-    border-radius: 999px;
-    padding: 8px 12px;
-    gap: 8px;
   }
 
   .selectionButtons {
     flex-direction: row;
-    gap: 6px;
-    width: auto;
-    order: 0;
+    flex-wrap: wrap;
   }
 
-  .selectionClearBtn {
-    order: 1;
+  .bulkBtn {
+    width: auto;
+    flex-shrink: 0;
   }
 }
 

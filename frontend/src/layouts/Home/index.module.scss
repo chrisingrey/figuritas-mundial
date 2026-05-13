@@ -7,12 +7,16 @@
     #f8f7f1;
 }
 
+// ─── Header ───────────────────────────────────────────────────────────────────
+
 .header {
   position: sticky;
   top: 0;
   z-index: 10;
-  display: grid;
-  gap: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   padding: 12px 16px;
   background: rgba(255, 255, 255, 0.96);
   border-bottom: 2px solid #101214;
@@ -31,47 +35,87 @@
   }
 }
 
-.userArea {
+// ─── Profile button + dropdown ────────────────────────────────────────────────
+
+.profileArea {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.profileBtn {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  color: #5a5d63;
-  font-size: 13px;
-  font-weight: 800;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  color: #101214;
+  background: #f7d719;
+  border: 2px solid #101214;
+  border-radius: 50%;
+  box-shadow: 2px 2px 0 #101214;
+  cursor: pointer;
+  transition: transform 0.1s;
 
-  span {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  &:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 #101214;
   }
 }
 
-.logoutBtn {
-  flex: 0 0 auto;
-  min-height: 40px;
-  padding: 0 12px;
-  color: #101214;
+.profileInitials {
+  font-size: 13px;
+  font-weight: 1000;
+  letter-spacing: 0.03em;
+  line-height: 1;
+}
+
+.userMenu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 180px;
   background: #ffffff;
   border: 2px solid #101214;
-  border-radius: 7px;
-  box-shadow: 3px 3px 0 #f7d719;
-  font-weight: 900;
-  cursor: pointer;
+  border-radius: 8px;
+  box-shadow: 4px 4px 0 #101214;
+  overflow: hidden;
+  z-index: 100;
 }
+
+.userMenuName {
+  padding: 10px 14px 8px;
+  color: #5a5d63;
+  font-size: 12px;
+  font-weight: 800;
+  border-bottom: 1.5px solid #e8e8e4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.userMenuLogout {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  color: #c51632;
+  background: transparent;
+  border: none;
+  font-size: 13px;
+  font-weight: 900;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: #fff5f6;
+  }
+}
+
+// ─── Main content ─────────────────────────────────────────────────────────────
 
 .main {
   width: min(100%, 860px);
   margin: 0 auto;
   padding: 24px 16px 56px;
-}
-
-.loading {
-  padding: 80px 16px;
-  color: #101214;
-  text-align: center;
-  font-weight: 900;
 }
 
 .content {
@@ -89,61 +133,178 @@
   text-transform: uppercase;
 }
 
-// ─── Album cards ──────────────────────────────────────────────────────────────
+// ─── Album shelf / book covers ────────────────────────────────────────────────
 
-.albumGrid {
+.albumShelf {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px;
+}
+
+.bookWrapper {
+  perspective: 900px;
+  width: calc(50% - 12px);
+  max-width: 210px;
+}
+
+.book {
+  width: 100%;
+  transform-origin: left center;
+  transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 0 8px 8px 0;
+  box-shadow: 5px 5px 0 #101214;
+  cursor: pointer;
+
+  &:hover .openBtn {
+    background: #2368c4;
+    color: #ffffff;
+    border-color: #101214;
+  }
+
+  &.opening {
+    transform: rotateY(-90deg);
+  }
+}
+
+.coverInner {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  border: 2px solid #101214;
+  border-radius: 0 8px 8px 0;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    flex-shrink: 0;
+    width: 10px;
+    background: linear-gradient(
+      to bottom,
+      #29b7b8 0% 20%,
+      #ff6d00 20% 40%,
+      #b9e461 40% 60%,
+      #475cce 60% 80%,
+      #ee2027 80% 100%
+    );
+    border-right: 1.5px solid #101214;
+  }
+}
+
+.coverContent {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  flex: 1;
+  min-width: 0;
 }
 
-.albumCard {
-  padding: 16px 18px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 2px solid #101214;
-  border-radius: 8px;
-  box-shadow: 4px 4px 0 rgba(16, 18, 20, 0.14);
-}
-
-.albumCardTop {
+.coverHeader {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  padding: 10px 6px 7px;
+  background: #101214;
+  border-bottom: 2px solid #101214;
+  text-align: center;
+}
 
-  h3 {
-    margin: 0 0 6px;
-    color: #101214;
-    font-size: 18px;
-    font-weight: 1000;
-    line-height: 1;
-  }
+.coverBrand {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 7px;
+  font-weight: 1000;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.coverYear {
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 1000;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.stars {
+  display: flex;
+  gap: 3px;
+  margin-top: 4px;
+  font-size: 7px;
+
+  // each star gets a different brand color
+  span:nth-child(1) { color: #29b7b8; }
+  span:nth-child(2) { color: #f7d719; }
+  span:nth-child(3) { color: #ff6d00; }
+  span:nth-child(4) { color: #b9e461; }
+  span:nth-child(5) { color: #475cce; }
+}
+
+.coverArt {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 8px;
+  background: #f8f7f1;
+}
+
+.trophyIcon {
+  width: 65%;
+  max-width: 90px;
+}
+
+.coverFooter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 8px 10px;
+  background: #ffffff;
+  border-top: 2px solid #101214;
+  text-align: center;
+}
+
+.coverAlbumName {
+  color: #101214;
+  font-size: 10px;
+  font-weight: 1000;
+  line-height: 1.25;
+  text-transform: uppercase;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .roleTag {
   display: inline-block;
-  padding: 3px 8px;
+  padding: 2px 7px;
   color: #101214;
   background: #f7d719;
-  border: 2px solid #101214;
+  border: 1.5px solid #101214;
   border-radius: 999px;
-  font-size: 10px;
+  font-size: 8px;
   font-weight: 1000;
   text-transform: uppercase;
 }
 
 .openBtn {
-  flex: 0 0 auto;
-  min-height: 38px;
-  padding: 0 16px;
-  color: #ffffff;
-  background: #2368c4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 32px;
+  padding: 0 10px;
+  color: #101214;
+  background: #f7d719;
   border: 2px solid #101214;
-  border-radius: 7px;
-  box-shadow: 3px 3px 0 #101214;
-  font-size: 13px;
-  font-weight: 900;
-  cursor: pointer;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 1000;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: background 0.15s, color 0.15s;
+  pointer-events: none;
 }
 
 // ─── Invitations ──────────────────────────────────────────────────────────────
@@ -214,9 +375,19 @@
 
 // ─── Create album ─────────────────────────────────────────────────────────────
 
+.createSection {
+  display: flex;
+  justify-content: center;
+
+  // when showing the expanded create form, stretch it full width
+  &:has(.createCard) {
+    display: block;
+  }
+}
+
 .createToggleBtn {
   min-height: 44px;
-  padding: 0 20px;
+  padding: 0 28px;
   color: #101214;
   background: #ffffff;
   border: 2px dashed #101214;
@@ -316,10 +487,14 @@
   box-shadow: 3px 3px 0 #101214;
 }
 
+// ─── Responsive ───────────────────────────────────────────────────────────────
+
 @media (min-width: 640px) {
+  .sectionTitle {
+    text-align: center;
+  }
+
   .header {
-    grid-template-columns: auto 1fr;
-    align-items: center;
     padding: 0 clamp(20px, 4vw, 48px);
     min-height: 66px;
   }
@@ -328,16 +503,17 @@
     display: inline;
   }
 
-  .userArea {
-    justify-content: flex-end;
-  }
-
   .main {
     padding: 32px clamp(20px, 4vw, 24px) 64px;
   }
 
-  .albumGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  .bookWrapper {
+    width: calc(33.33% - 16px);
+  }
+}
+
+@media (min-width: 860px) {
+  .bookWrapper {
+    width: calc(25% - 18px);
   }
 }

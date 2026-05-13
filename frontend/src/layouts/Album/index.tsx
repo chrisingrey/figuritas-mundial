@@ -513,7 +513,7 @@ export default function Album() {
             {canEditRepeatedBulk && (
               <button
                 type="button"
-                className={`${styles.bulkBtn} ${styles.bulkBtn_primary}`}
+                className={`${styles.bulkBtn} ${styles.bulkBtn_repeated}`}
                 onClick={handleOpenBulkRepeated}
                 disabled={bulkLoading}
               >

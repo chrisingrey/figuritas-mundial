@@ -1,10 +1,41 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { albumsService, meService, type MyAlbumMembershipResponse, type MyInvitationResponse } from "@backend";
 import { useUserLogged } from "@/context";
 import { useApiCall } from "@/hooks";
 import { BookSpinner } from "@/components";
 import styles from "./index.module.scss";
+
+function getInitials(fullname?: string, email?: string): string {
+  if (fullname) {
+    const parts = fullname.trim().split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    return parts[0].slice(0, 2).toUpperCase();
+  }
+  return email ? email[0].toUpperCase() : "?";
+}
+
+function TrophyIcon() {
+  return (
+    <svg viewBox="0 0 64 72" fill="none" xmlns="http://www.w3.org/2000/svg" className={styles.trophyIcon}>
+      <path d="M20 8h24v22c0 11-8 19-12 19S20 41 20 30V8z" fill="#f7d719" stroke="#101214" strokeWidth="2.5" strokeLinejoin="round" />
+      <path d="M20 14H8c0 12 5 18 12 20" stroke="#101214" strokeWidth="2.5" strokeLinecap="round" />
+      <path d="M44 14h12c0 12-5 18-12 20" stroke="#101214" strokeWidth="2.5" strokeLinecap="round" />
+      <rect x="26" y="49" width="12" height="7" fill="#f7d719" stroke="#101214" strokeWidth="2.5" />
+      <rect x="18" y="56" width="28" height="5" rx="2" fill="#f7d719" stroke="#101214" strokeWidth="2.5" />
+      <path d="M32 19v12M26 25h12" stroke="#101214" strokeWidth="2.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function ProfileIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22">
+      <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2" />
+      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
 
 export default function Home() {
   const navigate = useNavigate();
@@ -15,6 +46,10 @@ export default function Home() {
   const [albumName, setAlbumName] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const [createError, setCreateError] = useState("");
+  const [openingAlbumId, setOpeningAlbumId] = useState<string | null>(null);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   const { execute: fetchMyAlbums, loading } = useApiCall(meService.getMyAlbums, { initialLoading: true });
   const { execute: createAlbumCall, loading: creating } = useApiCall(albumsService.createAlbum);
@@ -23,6 +58,17 @@ export default function Home() {
     fetchMyAlbums().then(setMemberships).catch(() => setMemberships([]));
     meService.getMyInvitations().then(setInvitations).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (!showUserMenu) return;
+    const handler = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setShowUserMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [showUserMenu]);
 
   const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -36,6 +82,13 @@ export default function Home() {
     }
   };
 
+  const handleOpen = (albumId: string) => {
+    if (openingAlbumId) return;
+    setOpeningAlbumId(albumId);
+    setTimeout(() => navigate(`/album/${albumId}`), 480);
+  };
+
+  const initials = getInitials(user?.fullname, user?.email);
   const hasAlbums = memberships.length > 0;
 
   if (loading) return <BookSpinner overlay />;
@@ -44,9 +97,33 @@ export default function Home() {
     <div className={styles.page}>
       <header className={styles.header}>
         <span className={styles.logo}>Figuritas <strong>Mundial 2026</strong></span>
-        <div className={styles.userArea}>
-          <span>{user?.fullname || user?.email}</span>
-          <button type="button" className={styles.logoutBtn} onClick={logout}>Salir</button>
+
+        <div className={styles.profileArea} ref={userMenuRef}>
+          <button
+            type="button"
+            className={styles.profileBtn}
+            onClick={() => setShowUserMenu(v => !v)}
+            aria-label="Menú de usuario"
+          >
+            {initials ? (
+              <span className={styles.profileInitials}>{initials}</span>
+            ) : (
+              <ProfileIcon />
+            )}
+          </button>
+
+          {showUserMenu && (
+            <div className={styles.userMenu}>
+              <div className={styles.userMenuName}>{user?.fullname || user?.email}</div>
+              <button
+                type="button"
+                className={styles.userMenuLogout}
+                onClick={() => { setShowUserMenu(false); logout(); }}
+              >
+                Cerrar sesión
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
@@ -55,21 +132,38 @@ export default function Home() {
           {hasAlbums && (
             <section>
               <h2 className={styles.sectionTitle}>Mis albums</h2>
-              <div className={styles.albumGrid}>
+              <div className={styles.albumShelf}>
                 {memberships.map(m => (
-                  <div key={m.albumId} className={styles.albumCard}>
-                    <div className={styles.albumCardTop}>
-                      <div>
-                        <h3>{m.albumName}</h3>
-                        <span className={styles.roleTag}>{m.isOwner ? "Propietario" : m.roleName}</span>
+                  <div key={m.albumId} className={styles.bookWrapper}>
+                    <div
+                      className={`${styles.book} ${openingAlbumId === m.albumId ? styles.opening : ""}`}
+                      onClick={() => handleOpen(m.albumId)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={e => e.key === "Enter" && handleOpen(m.albumId)}
+                      aria-label={`Abrir album ${m.albumName}`}
+                    >
+                      <div className={styles.coverInner}>
+                        <div className={styles.coverContent}>
+                          <div className={styles.coverHeader}>
+                            <span className={styles.coverBrand}>Figuritas</span>
+                            <strong className={styles.coverYear}>Mundial 2026</strong>
+                            <div className={styles.stars}>
+                              <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+                            </div>
+                          </div>
+                          <div className={styles.coverArt}>
+                            <TrophyIcon />
+                          </div>
+                          <div className={styles.coverFooter}>
+                            <div className={styles.coverAlbumName}>{m.albumName}</div>
+                            <span className={styles.roleTag}>{m.isOwner ? "Propietario" : m.roleName}</span>
+                            <div className={styles.openBtn}>
+                              Abrir →
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <button
-                        type="button"
-                        className={styles.openBtn}
-                        onClick={() => navigate(`/album/${m.albumId}`)}
-                      >
-                        Abrir
-                      </button>
                     </div>
                   </div>
                 ))}
@@ -106,7 +200,7 @@ export default function Home() {
             </div>
           )}
 
-          <section>
+          <section className={styles.createSection}>
             {!showCreate ? (
               <button
                 type="button"
