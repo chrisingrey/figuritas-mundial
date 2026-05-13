@@ -1,0 +1,163 @@
+// ─── Section block (shared pattern) ───────────────────────────────────────────
+
+.sectionBlock {
+  position: relative;
+  width: 100%;
+  min-inline-size: 0;
+  overflow: visible;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 2px solid #101214;
+  border-radius: 8px;
+  box-shadow: 5px 5px 0 rgba(16, 18, 20, 0.16);
+}
+
+.accordionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 0;
+  min-inline-size: 0;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  user-select: none;
+
+  h2 {
+    margin: 0;
+    color: #101214;
+    font-size: 17px;
+    font-weight: 1000;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  > div {
+    min-inline-size: 0;
+    flex: 1;
+  }
+
+  span {
+    margin: 4px 0 0;
+    display: block;
+    color: #5a5d63;
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  svg {
+    color: #101214;
+    flex-shrink: 0;
+  }
+
+  &[aria-expanded="true"] {
+    margin-bottom: 12px;
+  }
+}
+
+// ─── KPIs ─────────────────────────────────────────────────────────────────────
+
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 10px;
+  min-inline-size: 0;
+}
+
+.kpiCard {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-inline-size: 0;
+  padding: 10px 12px;
+  background: #f8f7f1;
+  border: 2px solid #101214;
+  border-radius: 8px;
+}
+
+.kpiValue {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #101214;
+  font-size: 20px;
+  font-weight: 1000;
+  line-height: 1;
+}
+
+.kpiLabel {
+  overflow-wrap: anywhere;
+  color: #5a5d63;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+// ─── Country progress bars ─────────────────────────────────────────────────────
+
+.kpiCountryList {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.kpiCountryRow {
+  display: grid;
+  grid-template-columns: 36px 1fr 40px;
+  align-items: center;
+  gap: 8px;
+
+  &.kpiCountryComplete .kpiCountryCode {
+    color: #18a957;
+  }
+}
+
+.kpiCountryCode {
+  color: #101214;
+  font-size: 11px;
+  font-weight: 1000;
+}
+
+.kpiCountryBar {
+  height: 6px;
+  background: #e8e7e0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.kpiCountryBarFill {
+  height: 100%;
+  background: #b9e461;
+  border-radius: 999px;
+  transition: width 0.3s;
+}
+
+.kpiCountryStat {
+  color: #5a5d63;
+  font-size: 10px;
+  font-weight: 800;
+  text-align: right;
+}
+
+.verMasBtn {
+  width: 100%;
+  padding: 7px;
+  color: #5a5d63;
+  background: transparent;
+  border: 2px solid #e8e7e0;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+  text-align: center;
+
+  &:hover {
+    border-color: #101214;
+    color: #101214;
+  }
+}

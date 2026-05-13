@@ -1,0 +1,572 @@
+// ─── Main panel ───────────────────────────────────────────────────────────────
+
+.mainPanel {
+  width: 100%;
+  min-inline-size: 0;
+  overflow: visible;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 2px solid #101214;
+  border-radius: 8px;
+  box-shadow: 5px 5px 0 rgba(16, 18, 20, 0.16);
+}
+
+// ─── Panel header ─────────────────────────────────────────────────────────────
+
+.panelHeader {
+  display: grid;
+  gap: 5px;
+  margin-bottom: 18px;
+  min-inline-size: 0;
+
+  h2 {
+    margin: 0;
+    color: #101214;
+    font-size: 19px;
+    font-weight: 1000;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  > div {
+    min-inline-size: 0;
+  }
+
+  p,
+  span {
+    margin: 4px 0 0;
+    color: #5a5d63;
+    font-size: 12px;
+    font-weight: 800;
+  }
+}
+
+.panelHeaderRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  min-inline-size: 0;
+}
+
+// ─── Mode switch tabs ─────────────────────────────────────────────────────────
+
+.modeSwitch {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  min-inline-size: 0;
+  max-width: 100%;
+  padding: 2px 2px 8px;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.modeBtn,
+.modeBtnActive {
+  flex: 0 0 auto;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 2px solid #101214;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.modeBtn {
+  color: #101214;
+  background: #ffffff;
+}
+
+.modeBtnActive {
+  color: #ffffff;
+  background: #2368c4;
+}
+
+// ─── Filters ──────────────────────────────────────────────────────────────────
+
+.albumFilters {
+  position: relative;
+  z-index: 40;
+  display: grid;
+  gap: 10px;
+  margin-bottom: 18px;
+  padding: 12px;
+  background: #f8f7f1;
+  border: 2px solid #101214;
+  border-radius: 8px;
+  overflow: visible;
+}
+
+.filterHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-inline-size: 0;
+
+  span,
+  strong {
+    color: #5a5d63;
+    font-size: 11px;
+    font-weight: 1000;
+    text-transform: uppercase;
+  }
+
+  span {
+    color: #101214;
+  }
+}
+
+.filterControls {
+  position: relative;
+  z-index: 45;
+  display: grid;
+  gap: 10px;
+  min-inline-size: 0;
+}
+
+// Desktop: full dropdown + search (hidden on mobile)
+.filterControlsDesktop {
+  display: none;
+}
+
+// Mobile: search with icon + compact code select inline (hidden on desktop)
+.filterControlsMobile {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.searchWithIcon {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 12px;
+  background: #ffffff;
+  border: 2px solid #101214;
+  border-radius: 10px;
+
+  &:focus-within {
+    border-color: #2368c4;
+    box-shadow: 0 0 0 3px rgba(35, 104, 196, 0.18);
+  }
+}
+
+.searchInputInline {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #101214;
+  font-size: 14px;
+  font-weight: 700;
+  min-width: 0;
+
+  &::placeholder {
+    color: #9a9da3;
+    font-weight: 600;
+  }
+}
+
+.teamCodeSelect {
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 0 10px;
+  background: #ffffff;
+  border: 2px solid #101214;
+  border-radius: 10px;
+  color: #101214;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+  appearance: none;
+  text-align: center;
+  min-width: 60px;
+
+  &:focus {
+    outline: none;
+    border-color: #2368c4;
+    box-shadow: 0 0 0 3px rgba(35, 104, 196, 0.18);
+  }
+}
+
+.searchInput {
+  width: 100%;
+  min-height: 38px;
+  padding: 0 12px;
+  color: #101214;
+  background: #ffffff;
+  border: 2px solid #101214;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 800;
+  outline: none;
+
+  &:focus {
+    border-color: #2368c4;
+    box-shadow: 0 0 0 4px rgba(35, 104, 196, 0.18);
+  }
+}
+
+// ─── Desktop: dropdown + clear button ────────────────────────────────────────
+
+.dropdownWithClear {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-inline-size: 0;
+}
+
+.clearFilterBtn {
+  flex-shrink: 0;
+  align-self: center;
+  min-height: 36px;
+  min-width: 36px;
+  padding: 0;
+  color: #101214;
+  background: #ffffff;
+  border: 2px solid #101214;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 #101214;
+  transition: background 0.1s;
+
+  &:hover {
+    background: #ffeaea;
+  }
+}
+
+// ─── Mobile: custom mini team dropdown ────────────────────────────────────────
+
+.mobileTeamDropdown {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.teamCodeBtn {
+  min-height: 44px;
+  padding: 0 12px;
+  background: #ffffff;
+  border: 2px solid #101214;
+  border-radius: 10px;
+  color: #101214;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+  min-width: 56px;
+
+  &:focus {
+    outline: none;
+    border-color: #2368c4;
+    box-shadow: 0 0 0 3px rgba(35, 104, 196, 0.18);
+  }
+}
+
+.teamCodeBtnActive {
+  background: #101214;
+  color: #ffffff;
+}
+
+.clearFilterBtnMobile {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  color: #ffffff;
+  background: #101214;
+  border: 2px solid #ffffff;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 1000;
+  cursor: pointer;
+  line-height: 1;
+  box-shadow: 1px 1px 0 rgba(16, 18, 20, 0.2);
+}
+
+.mobileDropdownMenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: min(50svh, 320px);
+  overflow-y: auto;
+  padding: 8px;
+  background: #ffffff;
+  border: 2px solid #101214;
+  border-radius: 10px;
+  box-shadow: 4px 4px 0 rgba(16, 18, 20, 0.18);
+  min-width: 80px;
+}
+
+.mobileOption,
+.mobileOptionActive {
+  min-height: 36px;
+  padding: 0 10px;
+  border: 2px solid #101214;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.mobileOption {
+  color: #101214;
+  background: #ffffff;
+
+  &:hover {
+    background: #f8f7f1;
+  }
+}
+
+.mobileOptionActive {
+  color: #ffffff;
+  background: #101214;
+}
+
+// ─── Sticker group headers ────────────────────────────────────────────────────
+
+.stickerGroupHeader {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0 2px;
+
+  span {
+    white-space: nowrap;
+    color: #5a5d63;
+    font-size: 10px;
+    font-weight: 1000;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  hr {
+    flex: 1;
+    margin: 0;
+    border: none;
+    border-top: 2px solid #e8e7e0;
+  }
+}
+
+// ─── Sticker grid ─────────────────────────────────────────────────────────────
+
+.stickerGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  min-inline-size: 0;
+}
+
+.sticker {
+  display: grid;
+  grid-template-rows: auto auto auto;
+  gap: 4px;
+  min-inline-size: 0;
+  min-height: 72px;
+  padding: 8px 6px;
+  color: #101214;
+  background: #ffffff;
+  border: 2px solid #101214;
+  border-radius: 16px;
+  cursor: pointer;
+  text-align: center;
+  user-select: none;
+  position: relative;
+  box-shadow: 3px 3px 0 rgba(16, 18, 20, 0.14);
+  transition: transform 0.08s, box-shadow 0.08s, opacity 0.12s, background 0.12s;
+
+  &:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 rgba(16, 18, 20, 0.2);
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.stickerReadOnly {
+  cursor: default;
+
+  &:hover {
+    transform: none;
+    box-shadow: 3px 3px 0 rgba(16, 18, 20, 0.14);
+  }
+
+  &:active {
+    transform: none;
+  }
+}
+
+.sticker_no_tengo {
+  background: #ffffff;
+}
+
+.sticker_tengo {
+  background: #fff3cd;
+}
+
+.sticker_pegado {
+  background: #b9e461;
+}
+
+.stickerSelected {
+  outline: 3px solid #2368c4;
+  outline-offset: 2px;
+  position: relative;
+}
+
+.stickerDisabled {
+  opacity: 0.34;
+}
+
+.stickerCode {
+  align-self: center;
+  color: #101214;
+  font-size: 11px;
+  font-weight: 1000;
+  line-height: 1;
+}
+
+.stickerMeta {
+  color: #2368c4;
+  font-size: 10px;
+  font-weight: 1000;
+  line-height: 1;
+}
+
+.label_no_tengo,
+.label_tengo,
+.label_pegado {
+  justify-self: center;
+  padding: 3px 7px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 1000;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.label_no_tengo {
+  color: #ffffff;
+  background: #c51632;
+}
+
+.label_tengo {
+  color: #101214;
+  background: #f7d719;
+}
+
+.label_pegado {
+  color: #ffffff;
+  background: #18a957;
+}
+
+.checkmark {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  color: #2368c4;
+  font-size: 12px;
+  font-weight: 1000;
+  line-height: 1;
+}
+
+.repeatedBadge {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  max-width: calc(100% - 12px);
+  transform: translateX(-50%);
+  padding: 2px 6px;
+  color: #ffffff;
+  background: #2368c4;
+  border: 2px solid #101214;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 1000;
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow: 2px 2px 0 rgba(16, 18, 20, 0.18);
+}
+
+.empty {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 42px 16px;
+  color: #101214;
+  text-align: center;
+  font-weight: 900;
+}
+
+// ─── Desktop ──────────────────────────────────────────────────────────────────
+
+@media (min-width: 760px) {
+  .mainPanel {
+    padding: 18px;
+  }
+
+  .panelHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .filterControls {
+    grid-template-columns: minmax(260px, 1fr) minmax(220px, 360px);
+    align-items: start;
+  }
+
+  .filterControlsDesktop {
+    display: grid;
+  }
+
+  .filterControlsMobile {
+    display: none;
+  }
+
+  .stickerGrid {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+  }
+
+  .sticker {
+    gap: 5px;
+    min-height: 82px;
+    padding: 9px;
+    border-radius: 16px;
+  }
+
+  .stickerCode {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 1040px) {
+  .stickerGrid {
+    grid-template-columns: repeat(7, 1fr);
+  }
+}

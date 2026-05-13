@@ -1,0 +1,175 @@
+// ─── Section block (shared pattern) ───────────────────────────────────────────
+
+.sectionBlock {
+  position: relative;
+  width: 100%;
+  min-inline-size: 0;
+  overflow: visible;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 2px solid #101214;
+  border-radius: 8px;
+  box-shadow: 5px 5px 0 rgba(16, 18, 20, 0.16);
+}
+
+.accordionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 0;
+  min-inline-size: 0;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  user-select: none;
+
+  h2 {
+    margin: 0;
+    color: #101214;
+    font-size: 17px;
+    font-weight: 1000;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  > div {
+    min-inline-size: 0;
+    flex: 1;
+  }
+
+  span {
+    margin: 4px 0 0;
+    display: block;
+    color: #5a5d63;
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  svg {
+    color: #101214;
+    flex-shrink: 0;
+  }
+
+  &[aria-expanded="true"] {
+    margin-bottom: 12px;
+  }
+}
+
+// ─── Action buttons ────────────────────────────────────────────────────────────
+
+.memberActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.exportBtn {
+  flex: 0 0 auto;
+  min-height: 30px;
+  padding: 0 10px;
+  color: #ffffff;
+  background: #2368c4;
+  border: 2px solid #101214;
+  border-radius: 7px;
+  box-shadow: 3px 3px 0 #101214;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.inviteBtn {
+  flex: 0 0 auto;
+  min-height: 30px;
+  padding: 0 10px;
+  color: #101214;
+  background: #f7d719;
+  border: 2px solid #101214;
+  border-radius: 7px;
+  box-shadow: 3px 3px 0 #101214;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+// ─── Member list ───────────────────────────────────────────────────────────────
+
+.memberList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-inline-size: 0;
+}
+
+.memberCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-inline-size: 0;
+  padding: 8px 10px;
+  background: #f8f7f1;
+  border: 2px solid #101214;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s;
+
+  &:hover {
+    background: #f7d71922;
+  }
+}
+
+.memberAvatar {
+  flex: 0 0 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  background: #101214;
+  border-radius: 999px;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 1000;
+}
+
+.memberInfo {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.memberName {
+  display: block;
+  color: #101214;
+  font-size: 13px;
+  font-weight: 900;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.memberRole {
+  display: block;
+  color: #5a5d63;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.memberChevron {
+  color: #5a5d63;
+  font-size: 18px;
+  font-weight: 300;
+}
+
+.emptyMembers {
+  margin: 0;
+  color: #5a5d63;
+  font-size: 13px;
+  font-weight: 700;
+}

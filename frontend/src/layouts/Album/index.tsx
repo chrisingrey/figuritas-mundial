@@ -4,8 +4,10 @@ import { albumsService, type AlbumResponse, type AlbumRoleResponse, type MemberR
 import { useUserLogged } from "@/context";
 import { worldCupAlbum } from "@/data/worldCupAlbum";
 import type { WorldCupSticker } from "@/types/album";
-import { TeamCodeDropdown } from "./TeamCodeDropdown";
 import styles from "./index.module.scss";
+import { MembersSection } from "./MembersSection";
+import { ProgressSection } from "./ProgressSection";
+import { StickersSection } from "./StickersSection";
 
 const INVITE_PERMISSION = "create-albumInvitation";
 const UPDATE_ALBUM_PERMISSION = "updateById-album";
@@ -15,12 +17,6 @@ const DELETE_MEMBER_PERMISSION = "deleteById-member";
 
 type StickerMode = "all" | "no_tengo" | "owned" | "tengo" | "pegado" | "repetidas" | "viewer_needs_my_repeated";
 type SelectionGroup = "missing" | "owned";
-
-const STATUS_LABEL: Record<StickerStatus, string> = {
-  no_tengo: "No tengo",
-  tengo: "Tengo",
-  pegado: "Pegado",
-};
 
 type BulkAction = { label: string; targetStatus: StickerStatus; variant: "primary" | "danger" | "yellow" };
 const BULK_ACTIONS: Record<StickerStatus, BulkAction[]> = {
@@ -78,10 +74,10 @@ export default function Album() {
   const [selection, setSelection] = useState<Set<string>>(new Set());
   const [selectionGroup, setSelectionGroup] = useState<SelectionGroup | null>(null);
   const [bulkLoading, setBulkLoading] = useState(false);
-  const [selectedRepeatedSticker, setSelectedRepeatedSticker] = useState<string | null>(null);
-  const [repeatedDraft, setRepeatedDraft] = useState(0);
-  const [repeatedSaving, setRepeatedSaving] = useState(false);
-  const [repeatedError, setRepeatedError] = useState("");
+  const [showBulkRepeatedModal, setShowBulkRepeatedModal] = useState(false);
+  const [bulkRepeatedDrafts, setBulkRepeatedDrafts] = useState<Map<string, number>>(new Map());
+  const [bulkRepeatedSaving, setBulkRepeatedSaving] = useState(false);
+  const [bulkRepeatedError, setBulkRepeatedError] = useState("");
 
   // Members state
   const [members, setMembers] = useState<MemberResponse[]>([]);
@@ -100,21 +96,11 @@ export default function Album() {
   const [inviteError, setInviteError] = useState("");
   const [inviteSent, setInviteSent] = useState(false);
 
-  // KPIs
-  const [kpiExpanded, setKpiExpanded] = useState(false);
-
   // Export modal
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportTengo, setExportTengo] = useState(true);
   const [exportFaltan, setExportFaltan] = useState(true);
   const [exportRepetidas, setExportRepetidas] = useState(true);
-
-  // Share
-  const [showShare, setShowShare] = useState(false);
-  const [shareEmail, setShareEmail] = useState("");
-  const [shareError, setShareError] = useState("");
-  const [shareCopied, setShareCopied] = useState(false);
-  const [shareLoading, setShareLoading] = useState(false);
 
   useEffect(() => {
     if (!albumId) return;
@@ -169,17 +155,23 @@ export default function Album() {
     if (!albumId) return;
     setInviteError(""); setInviteSent(false); setInviteEmail("");
     setShowInvite(true);
-    const fetched = await loadRoles();
-    const list = fetched.length > 0 ? fetched : roles;
-    if (list.length > 0 && !inviteRoleId) setInviteRoleId(list[0].id);
+    if (canInvite) {
+      const fetched = await loadRoles();
+      const list = fetched.length > 0 ? fetched : roles;
+      if (list.length > 0 && !inviteRoleId) setInviteRoleId(list[0].id);
+    }
   };
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!albumId || !inviteEmail || !inviteRoleId) return;
+    if (!albumId || !inviteEmail) return;
     setInviteSending(true); setInviteError("");
     try {
-      await albumsService.inviteMember(albumId, { invitedEmail: inviteEmail, roleId: inviteRoleId });
+      if (canInvite && inviteRoleId) {
+        await albumsService.inviteMember(albumId, { invitedEmail: inviteEmail, roleId: inviteRoleId });
+      } else {
+        await albumsService.shareAlbum(albumId, inviteEmail.trim());
+      }
       setInviteSent(true); setInviteEmail("");
       setTimeout(() => { setShowInvite(false); setInviteSent(false); }, 2200);
     } catch {
@@ -213,22 +205,6 @@ export default function Album() {
       setSelectedMember(null);
     } catch { setMemberError("No se pudo eliminar el miembro."); }
     finally { setMemberSaving(false); }
-  };
-
-  const handleShare = async () => {
-    if (!albumId) return;
-    const normalizedEmail = shareEmail.trim();
-    if (!normalizedEmail) return;
-
-    setShareLoading(true); setShareError("");
-    try {
-      await albumsService.shareAlbum(albumId, normalizedEmail);
-      setShareCopied(true); setShareEmail("");
-      setTimeout(() => { setShowShare(false); setShareCopied(false); }, 2200);
-    } catch {
-      setShareError("No se pudo compartir. Verificá que el email pertenezca a un usuario de la plataforma y que no tenga una invitación pendiente.");
-    }
-    finally { setShareLoading(false); }
   };
 
   const statusMap = useMemo(() => {
@@ -327,23 +303,22 @@ export default function Album() {
     }
   };
 
-  const openRepeatedModal = (code: string) => {
-    setSelectedRepeatedSticker(code);
-    setRepeatedDraft(repeatedMap.get(code) ?? 0);
-    setRepeatedError("");
+  const handleOpenBulkRepeated = () => {
+    const drafts = new Map<string, number>();
+    selection.forEach(code => {
+      if ((statusMap.get(code) ?? "no_tengo") === "pegado") {
+        drafts.set(code, repeatedMap.get(code) ?? 0);
+      }
+    });
+    setBulkRepeatedDrafts(drafts);
+    setBulkRepeatedError("");
+    setShowBulkRepeatedModal(true);
   };
 
-  const handleRepeatedAction = () => {
-    const [code] = Array.from(selection);
-    if (!code || (statusMap.get(code) ?? "no_tengo") !== "pegado") return;
-    openRepeatedModal(code);
-  };
-
-  const handleSaveRepeated = async () => {
-    if (!albumId || !album || !selectedRepeatedSticker) return;
-    const nextRepeated = Math.max(0, Math.floor(repeatedDraft));
-    setRepeatedSaving(true);
-    setRepeatedError("");
+  const handleSaveBulkRepeated = async () => {
+    if (!albumId || !album) return;
+    setBulkRepeatedSaving(true);
+    setBulkRepeatedError("");
 
     const prevAlbum = album;
     setAlbum(prev => {
@@ -351,24 +326,30 @@ export default function Album() {
       return {
         ...prev,
         stickers: prev.stickers.map(s =>
-          s.code === selectedRepeatedSticker ? { ...s, repeated: nextRepeated } : s,
+          bulkRepeatedDrafts.has(s.code)
+            ? { ...s, repeated: bulkRepeatedDrafts.get(s.code) ?? 0 }
+            : s,
         ),
       };
     });
 
     try {
-      const updated = await albumsService.updateStickerRepeated(albumId, selectedRepeatedSticker, nextRepeated);
+      let lastUpdated = prevAlbum;
+      for (const [code, count] of Array.from(bulkRepeatedDrafts.entries())) {
+        lastUpdated = await albumsService.updateStickerRepeated(albumId, code, Math.max(0, Math.floor(count)));
+      }
       setAlbum(prev => ({
-        ...updated,
-        permissions: updated.permissions ?? prev?.permissions ?? currentPermissions,
+        ...lastUpdated,
+        permissions: lastUpdated.permissions ?? prev?.permissions ?? currentPermissions,
       }));
-      setSelectedRepeatedSticker(null);
+      if (lastUpdated.permissions) setAlbumPermissions(albumId, lastUpdated.permissions);
+      setShowBulkRepeatedModal(false);
       clearSelection();
     } catch {
       setAlbum(prevAlbum);
-      setRepeatedError("No se pudo guardar la cantidad.");
+      setBulkRepeatedError("No se pudo guardar. Intentá de nuevo.");
     } finally {
-      setRepeatedSaving(false);
+      setBulkRepeatedSaving(false);
     }
   };
 
@@ -440,12 +421,6 @@ export default function Album() {
   const visibleTeam = worldCupAlbum.teams.find(t => t.code === selectedTeamCode);
   const ownedCount = album?.ownedCount ?? 0;
   const totalCount = album?.totalCount ?? 980;
-  const pct = Math.round((ownedCount / totalCount) * 100);
-
-  const getMemberDisplayName = (m: MemberResponse) =>
-    m.fullname ? `${m.fullname}${m.surname ? ` ${m.surname}` : ""}` : m.email;
-  const getMemberRole = (m: MemberResponse) => roles.find(r => r.id === m.roleId)?.name ?? "—";
-
   const selectedStatuses = useMemo(() => {
     const statuses = new Set<StickerStatus>();
     selection.forEach(code => statuses.add(statusMap.get(code) ?? "no_tengo"));
@@ -459,10 +434,9 @@ export default function Album() {
     return MIXED_OWNED_ACTIONS;
   }, [selectedStatuses]);
 
-  const canEditRepeatedSelection = useMemo(() => {
-    if (selection.size !== 1) return false;
-    const [code] = Array.from(selection);
-    return (statusMap.get(code) ?? "no_tengo") === "pegado";
+  const canEditRepeatedBulk = useMemo(() => {
+    if (selection.size === 0) return false;
+    return Array.from(selection).every(code => (statusMap.get(code) ?? "no_tengo") === "pegado");
   }, [selection, statusMap]);
 
   if (loading) return <div className={styles.loading}>Cargando album...</div>;
@@ -476,188 +450,54 @@ export default function Album() {
 
       <div className={showManagementSections ? styles.workspace : `${styles.workspace} ${styles.readOnlyWorkspace}`}>
         {showManagementSections && (
-        <section className={styles.sidebar}>
-
-          {/* ── Members ─────────────────────────────────────── */}
-          <div className={styles.sectionBlock}>
-            <div className={styles.sectionHeader}>
-              <div>
-                <h2>Miembros</h2>
-                <span>{members.length} miembro{members.length !== 1 ? "s" : ""}</span>
-              </div>
-              <div className={styles.memberActions}>
-                <button type="button" className={styles.shareBtn} onClick={() => { setShareError(""); setShareCopied(false); setShareEmail(""); setShowShare(true); }} disabled={shareLoading}>
-                  {shareLoading ? "..." : shareCopied ? "¡Invitado!" : "Compartir"}
-                </button>
-                <button type="button" className={styles.exportBtn} onClick={handleExport}>Exportar</button>
-                {canInvite && (
-                  <button type="button" className={styles.inviteBtn} onClick={openInviteModal}>+ Invitar</button>
-                )}
-              </div>
-            </div>
-            <div className={styles.memberList}>
-              {members.map(m => (
-                <button key={m.id} type="button" className={styles.memberCard} onClick={() => openMemberModal(m)}>
-                  <div className={styles.memberAvatar}>{(m.fullname ?? m.email).charAt(0).toUpperCase()}</div>
-                  <div className={styles.memberInfo}>
-                    <span className={styles.memberName}>{getMemberDisplayName(m)}</span>
-                    <span className={styles.memberRole}>{getMemberRole(m)}</span>
-                  </div>
-                  <span className={styles.memberChevron}>›</span>
-                </button>
-              ))}
-              {members.length === 0 && <p className={styles.emptyMembers}>Sin miembros cargados.</p>}
-            </div>
-          </div>
-
-          {/* ── KPIs ────────────────────────────────────────── */}
-          <div className={styles.sectionBlock}>
-            <div className={styles.sectionHeader}>
-              <div><h2>Progreso</h2></div>
-              <span className={styles.progress}>{ownedCount} / {totalCount} ({pct}%)</span>
-            </div>
-            <div className={styles.kpiGrid}>
-              <div className={styles.kpiCard}>
-                <span className={styles.kpiValue}>{ownedCount}/{totalCount}</span>
-                <span className={styles.kpiLabel}>Total figuritas</span>
-              </div>
-              <div className={styles.kpiCard}>
-                <span className={styles.kpiValue}>{kpiData.completedCount}/48</span>
-                <span className={styles.kpiLabel}>Países completos</span>
-              </div>
-              <div className={styles.kpiCard}>
-                <span className={styles.kpiValue}>{modeCounts.pegado}</span>
-                <span className={styles.kpiLabel}>Pegadas</span>
-              </div>
-              <div className={styles.kpiCard}>
-                <span className={styles.kpiValue}>{modeCounts.tengo}</span>
-                <span className={styles.kpiLabel}>Tengo (sin pegar)</span>
-              </div>
-            </div>
-            {kpiExpanded && (
-              <div className={styles.kpiCountryList}>
-                {kpiData.teamStats.map(t => (
-                  <div key={t.code} className={`${styles.kpiCountryRow} ${t.complete ? styles.kpiCountryComplete : ""}`}>
-                    <span className={styles.kpiCountryCode}>{t.code}</span>
-                    <div className={styles.kpiCountryBar}>
-                      <div className={styles.kpiCountryBarFill} style={{ width: `${(t.owned / t.total) * 100}%` }} />
-                    </div>
-                    <span className={styles.kpiCountryStat}>{t.owned}/{t.total}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-            <button type="button" className={styles.verMasBtn} onClick={() => setKpiExpanded(v => !v)}>
-              {kpiExpanded ? "Ver menos ▲" : "Ver más ▼"}
-            </button>
-          </div>
-        </section>
+          <section className={styles.sidebar}>
+            <MembersSection
+              members={members}
+              roles={roles}
+              onExport={handleExport}
+              onOpenInvite={openInviteModal}
+              onOpenMember={openMemberModal}
+            />
+            <ProgressSection
+              ownedCount={ownedCount}
+              totalCount={totalCount}
+              kpiData={kpiData}
+              modeCounts={modeCounts}
+            />
+          </section>
         )}
 
-        <section className={styles.mainPanel}>
-          <div className={styles.panelHeader}>
-            <div>
-              <h2>
-                {visibleTeam ? visibleTeam.name : "Figuritas"}
-              </h2>
-              <p>
-                {visibleTeam
-                  ? `Grupo ${visibleTeam.group} · ${visibleTeam.confederation}`
-                  : `${visibleStickers.length} figuritas`}
-              </p>
-            </div>
-            <div className={styles.panelHeaderRight}>
-              <div className={styles.modeSwitch}>
-                {([
-                  "all",
-                  "no_tengo",
-                  "owned",
-                  "tengo",
-                  "pegado",
-                  ...(!readOnlyAlbum ? ["repetidas" as const] : []),
-                  ...(readOnlyAlbum && myAlbum ? ["viewer_needs_my_repeated" as const] : []),
-                ] as StickerMode[]).map(mode => (
-                  <button
-                    type="button" key={mode}
-                    className={mode === stickerMode ? `${styles.modeBtn} ${styles.modeBtnActive}` : styles.modeBtn}
-                    onClick={() => { setStickerMode(mode); clearSelection(); }}
-                  >
-                    {mode === "all" ? "Todas"
-                      : mode === "no_tengo" ? `No tengo (${modeCounts.noTengo})`
-                      : mode === "owned" ? `Tengo y pegado (${modeCounts.tengo + modeCounts.pegado})`
-                      : mode === "tengo" ? `Tengo (${modeCounts.tengo})`
-                      : mode === "pegado" ? `Pegado (${modeCounts.pegado})`
-                      : mode === "repetidas" ? `Repetidas (${modeCounts.repetidas})`
-                      : "Mis repetidas que necesita"}
-                  </button>
-                ))}
-              </div>
-              {!readOnlyAlbum && selection.size > 0 && (
-                <button type="button" className={styles.clearSelectionBtn} onClick={clearSelection}>
-                  Limpiar ({selection.size})
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className={styles.albumFilters}>
-            <div className={styles.filterHeader}>
-              <span>Paises y busqueda</span>
-              <strong>{visibleTeams.length} paises</strong>
-            </div>
-            <div className={styles.filterControls}>
-              <TeamCodeDropdown
-                teams={visibleTeams} selectedTeamCode={selectedTeamCode}
-                selectedGroup="Todos" onSelect={setSelectedTeamCode}
-              />
-              <input
-                type="search"
-                className={styles.searchInput}
-                placeholder="Buscar por codigo: MEX, MEX 1, 17"
-                value={searchQuery}
-                onChange={e => { setSearchQuery(e.target.value); clearSelection(); }}
-              />
-            </div>
-          </div>
-
-          <div className={styles.stickerGrid}>
-            {visibleStickers.map(sticker => {
-              const status = statusMap.get(sticker.stickerCode) ?? "no_tengo";
-              const isSelected = selection.has(sticker.stickerCode);
-              const isDisabled = !readOnlyAlbum && selectionGroup !== null && getSelectionGroup(status) !== selectionGroup;
-              return (
-                <article
-                  key={sticker.id}
-                  className={[
-                    styles.sticker,
-                    styles[`sticker_${status}`],
-                    readOnlyAlbum ? styles.stickerReadOnly : "",
-                    isSelected ? styles.stickerSelected : "",
-                    isDisabled ? styles.stickerDisabled : "",
-                  ].join(" ")}
-                  onClick={readOnlyAlbum ? undefined : () => handleStickerClick(sticker.stickerCode)}
-                  title={`${sticker.stickerCode} · ${sticker.teamName ?? "Especial"}`}
-                >
-                  {!readOnlyAlbum && isSelected && <span className={styles.checkmark}>✓</span>}
-                  <strong className={styles.stickerCode}>{sticker.stickerCode}</strong>
-                  <span className={styles.stickerMeta}>{sticker.teamCode ?? "SP"}</span>
-                  {(repeatedMap.get(sticker.stickerCode) ?? 0) > 0 && (
-                    <span className={styles.repeatedBadge}>Rep. {repeatedMap.get(sticker.stickerCode)}</span>
-                  )}
-                  <span className={styles[`label_${status}`]}>{STATUS_LABEL[status]}</span>
-                </article>
-              );
-            })}
-            {visibleStickers.length === 0 && <p className={styles.empty}>No hay figuritas para mostrar.</p>}
-          </div>
-        </section>
+        <StickersSection
+          visibleStickers={visibleStickers}
+          visibleTeams={visibleTeams}
+          visibleTeam={visibleTeam}
+          statusMap={statusMap}
+          repeatedMap={repeatedMap}
+          selection={selection}
+          selectionGroup={selectionGroup}
+          stickerMode={stickerMode}
+          modeCounts={modeCounts}
+          selectedTeamCode={selectedTeamCode}
+          searchQuery={searchQuery}
+          readOnlyAlbum={readOnlyAlbum}
+          hasMyAlbum={!!myAlbum}
+          onStickerClick={handleStickerClick}
+          onTeamSelect={code => { setSelectedTeamCode(code); clearSelection(); }}
+          onModeChange={mode => { setStickerMode(mode); clearSelection(); }}
+          onSearchChange={query => { setSearchQuery(query); clearSelection(); }}
+        />
       </div>
 
       {!readOnlyAlbum && selection.size > 0 && bulkActions && (
         <div className={styles.selectionActions}>
-          <span className={styles.selectionCount}>
-            {selection.size} seleccionada{selection.size !== 1 ? "s" : ""}
-          </span>
+          <button
+            type="button"
+            className={styles.selectionClearBtn}
+            onClick={clearSelection}
+            disabled={bulkLoading}
+          >
+            Limpiar selección
+          </button>
           <div className={styles.selectionButtons}>
             {bulkActions.map(action => (
               <button
@@ -667,17 +507,17 @@ export default function Album() {
                 onClick={() => handleBulkAction(action.targetStatus)}
                 disabled={bulkLoading}
               >
-                {action.label}
+                {action.label} ({selection.size})
               </button>
             ))}
-            {canEditRepeatedSelection && (
+            {canEditRepeatedBulk && (
               <button
                 type="button"
                 className={`${styles.bulkBtn} ${styles.bulkBtn_primary}`}
-                onClick={handleRepeatedAction}
+                onClick={handleOpenBulkRepeated}
                 disabled={bulkLoading}
               >
-                Repetida
+                Repetidas
               </button>
             )}
           </div>
@@ -685,36 +525,6 @@ export default function Album() {
       )}
 
       {/* ── Share modal ────────────────────────────────────────────────────────── */}
-      {showShare && (
-        <div className={styles.overlay} onClick={() => setShowShare(false)}>
-          <div className={styles.modal} onClick={e => e.stopPropagation()}>
-            <h3>Compartir album</h3>
-            {shareCopied ? (
-              <p className={styles.inviteSuccess}>¡Invitación enviada correctamente!</p>
-            ) : (
-              <form onSubmit={(e) => { e.preventDefault(); handleShare(); }} className={styles.inviteForm}>
-                <p className={styles.inviteHint}>Ingresá el email de un usuario de la plataforma. Va a poder ver las figuritas del álbum.</p>
-                <input
-                  type="email"
-                  placeholder="email@ejemplo.com"
-                  value={shareEmail}
-                  onChange={e => setShareEmail(e.target.value)}
-                  required
-                  autoFocus
-                />
-                {shareError && <p className={styles.inviteError}>{shareError}</p>}
-                <div className={styles.modalActions}>
-                  <button type="button" onClick={() => setShowShare(false)}>Cancelar</button>
-                  <button type="submit" className={styles.inviteSend} disabled={shareLoading}>
-                    {shareLoading ? "Enviando..." : "Enviar invitación"}
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* ── Invite modal ───────────────────────────────────────────────────────── */}
       {showInvite && (
         <div className={styles.overlay} onClick={() => setShowInvite(false)}>
@@ -724,12 +534,16 @@ export default function Album() {
               <p className={styles.inviteSuccess}>¡Invitación enviada correctamente!</p>
             ) : (
               <form onSubmit={handleInvite} className={styles.inviteForm}>
-                <p className={styles.inviteHint}>Ingresá el email de la persona a invitar.</p>
+                <p className={styles.inviteHint}>
+                  {canInvite
+                    ? "Ingresá el email de la persona a invitar."
+                    : "Ingresá el email de un usuario de la plataforma. Va a poder ver las figuritas del álbum."}
+                </p>
                 <input
                   type="email" placeholder="email@ejemplo.com" value={inviteEmail}
                   onChange={e => setInviteEmail(e.target.value)} required autoFocus
                 />
-                {roles.length > 1 && (
+                {canInvite && roles.length > 1 && (
                   <select value={inviteRoleId} onChange={e => setInviteRoleId(e.target.value)} className={styles.roleSelect}>
                     {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
                   </select>
@@ -751,7 +565,7 @@ export default function Album() {
       {selectedMember && (
         <div className={styles.overlay} onClick={() => setSelectedMember(null)}>
           <div className={styles.modal} onClick={e => e.stopPropagation()}>
-            <h3>{getMemberDisplayName(selectedMember)}</h3>
+            <h3>{selectedMember.fullname ? `${selectedMember.fullname}${selectedMember.surname ? ` ${selectedMember.surname}` : ""}` : selectedMember.email}</h3>
             <p className={styles.inviteHint}>{selectedMember.email}</p>
             {(canManageMembers || canDeleteMembers) ? (
               <div className={styles.inviteForm}>
@@ -822,39 +636,41 @@ export default function Album() {
         </div>
       )}
 
-      {selectedRepeatedSticker && (
-        <div className={styles.overlay} onClick={() => setSelectedRepeatedSticker(null)}>
-          <div className={styles.modal} onClick={e => e.stopPropagation()}>
-            <h3>Repetida {selectedRepeatedSticker}</h3>
-            <div className={styles.repeatedEditor}>
-              <button
-                type="button"
-                onClick={() => setRepeatedDraft(value => Math.max(0, value - 1))}
-                disabled={repeatedSaving || repeatedDraft <= 0}
-              >
-                -
-              </button>
-              <input
-                type="number"
-                min="0"
-                step="1"
-                value={repeatedDraft}
-                onChange={e => setRepeatedDraft(Math.max(0, Number(e.target.value) || 0))}
-                autoFocus
-              />
-              <button
-                type="button"
-                onClick={() => setRepeatedDraft(value => value + 1)}
-                disabled={repeatedSaving}
-              >
-                +
-              </button>
+      {showBulkRepeatedModal && (
+        <div className={styles.overlay} onClick={() => setShowBulkRepeatedModal(false)}>
+          <div className={styles.bulkRepeatedModal} onClick={e => e.stopPropagation()}>
+            <h3>Editar repetidas ({bulkRepeatedDrafts.size})</h3>
+            <div className={styles.bulkRepeatedList}>
+              {Array.from(bulkRepeatedDrafts.entries()).map(([code, count]) => (
+                <div key={code} className={styles.bulkRepeatedRow}>
+                  <span className={styles.bulkRepeatedCode}>{code}</span>
+                  <div className={styles.repeatedEditor}>
+                    <button
+                      type="button"
+                      onClick={() => setBulkRepeatedDrafts(prev => { const next = new Map(prev); next.set(code, Math.max(0, (next.get(code) ?? 0) - 1)); return next; })}
+                      disabled={bulkRepeatedSaving || count <= 0}
+                    >-</button>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={count}
+                      onChange={e => setBulkRepeatedDrafts(prev => { const next = new Map(prev); next.set(code, Math.max(0, Number(e.target.value) || 0)); return next; })}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setBulkRepeatedDrafts(prev => { const next = new Map(prev); next.set(code, (next.get(code) ?? 0) + 1); return next; })}
+                      disabled={bulkRepeatedSaving}
+                    >+</button>
+                  </div>
+                </div>
+              ))}
             </div>
-            {repeatedError && <p className={styles.inviteError}>{repeatedError}</p>}
-            <div className={styles.modalActions}>
-              <button type="button" onClick={() => setSelectedRepeatedSticker(null)}>Cancelar</button>
-              <button type="button" className={styles.inviteSend} onClick={handleSaveRepeated} disabled={repeatedSaving}>
-                {repeatedSaving ? "Guardando..." : "Guardar"}
+            {bulkRepeatedError && <p className={styles.inviteError}>{bulkRepeatedError}</p>}
+            <div className={styles.bulkRepeatedFooter}>
+              <button type="button" onClick={() => setShowBulkRepeatedModal(false)}>Cancelar</button>
+              <button type="button" className={styles.inviteSend} onClick={handleSaveBulkRepeated} disabled={bulkRepeatedSaving}>
+                {bulkRepeatedSaving ? "Guardando..." : "Aplicar"}
               </button>
             </div>
           </div>
