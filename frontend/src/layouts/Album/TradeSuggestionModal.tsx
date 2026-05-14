@@ -100,7 +100,7 @@ export function TradeSuggestionModal({ albumId, onClose }: Props) {
                     <span>{data.myName}</span>
                     <span>{data.theirName}</span>
                   </div>
-                  {data.suggestedExchange.map((ex, i) => (
+                  {data.suggestedExchange.map((ex: { mySticker: string; theirSticker: string }, i: number) => (
                     <div key={i} className={styles.tableRow}>
                       <span className={styles.tableCell}>{ex.mySticker}</span>
                       <span className={styles.arrowCell}><SwapIcon /></span>
