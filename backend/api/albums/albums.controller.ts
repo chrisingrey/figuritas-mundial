@@ -275,6 +275,30 @@ export const updateStickerRepeated = asyncHandler(async (
   res.status(200).json(mapAlbumResponse(album, permissions));
 });
 
+export const bulkUpdateStickerRepeated = asyncHandler(async (
+  req: Request,
+  res: Response,
+  _next: NextFunction,
+) => {
+  const { albumId, permissions } = toAuthorizedMemberRequest(req).authorizedMember;
+  const { updates } = req.body as { updates?: unknown };
+
+  if (!Array.isArray(updates) || updates.length === 0) {
+    res.status(400).json({ message: "Invalid body: updates (non-empty array) required." });
+    return;
+  }
+
+  for (const item of updates) {
+    if (typeof (item as { code?: unknown }).code !== "string" || typeof (item as { repeated?: unknown }).repeated !== "number") {
+      res.status(400).json({ message: "Each update must have code (string) and repeated (number)." });
+      return;
+    }
+  }
+
+  const album = await services.albumService.bulkSetStickerRepeated(albumId, updates as { code: string; repeated: number }[]);
+  res.status(200).json(mapAlbumResponse(album, permissions));
+});
+
 // ─── Invitations ─────────────────────────────────────────────────────────────
 
 export const getInvitations = asyncHandler(async (

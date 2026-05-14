@@ -67,6 +67,41 @@ export class AlbumService implements IAlbumService {
     });
   }
 
+  async bulkSetStickerRepeated(albumId: string, updates: { code: string; repeated: number }[]): Promise<Album> {
+    if (!Array.isArray(updates) || updates.length === 0) {
+      throw new AppError(400, ErrorCode.INVALID_ALBUM_DATA, "Updates must be a non-empty array.");
+    }
+
+    for (const { code, repeated } of updates) {
+      const normalizedCode = code.trim();
+      if (!ALL_STICKER_CODES.has(normalizedCode)) {
+        throw new AppError(400, ErrorCode.INVALID_STICKER_CODE, `Sticker code '${normalizedCode}' does not exist.`);
+      }
+      if (!Number.isInteger(repeated) || repeated < 0) {
+        throw new AppError(400, ErrorCode.INVALID_ALBUM_DATA, "Repeated must be a non-negative integer.");
+      }
+    }
+
+    const album = await this.albumRepository.getAsync((a: Album) => a.id === albumId);
+    const updateMap = new Map(updates.map(({ code, repeated }) => [code.trim(), repeated]));
+
+    for (const [normalizedCode] of updateMap) {
+      const sticker = album.stickers.find(s => s.code === normalizedCode);
+      if (!sticker || sticker.status !== "pegado") {
+        throw new AppError(400, ErrorCode.INVALID_ALBUM_DATA, `Sticker '${normalizedCode}' must be pasted to set repeated count.`);
+      }
+    }
+
+    const updatedStickers = album.stickers.map(s =>
+      updateMap.has(s.code) ? { ...s, repeated: updateMap.get(s.code)! } : s,
+    );
+
+    return this.albumRepository.patchByIdAndSaveAsync(albumId, {
+      stickers: updatedStickers,
+      updatedAt: new Date(),
+    });
+  }
+
   async setStickerRepeated(albumId: string, code: string, repeated: number): Promise<Album> {
     const normalizedCode = code.trim();
     if (!ALL_STICKER_CODES.has(normalizedCode)) {

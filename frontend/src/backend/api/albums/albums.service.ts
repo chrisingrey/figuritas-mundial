@@ -76,6 +76,13 @@ export const albumsService = {
     );
   },
 
+  async bulkUpdateStickerRepeated(albumId: string, updates: { code: string; repeated: number }[]): Promise<AlbumResponse> {
+    return api.patch<{ updates: { code: string; repeated: number }[] }, AlbumResponse>(
+      { updates },
+      `/${albumId}/stickers/repeated/bulk`,
+    );
+  },
+
   async shareAlbum(albumId: string, invitedEmail: string): Promise<InvitationResponse> {
     return api.post<{ invitedEmail: string }, InvitationResponse>({ invitedEmail }, `/${albumId}/share`);
   },

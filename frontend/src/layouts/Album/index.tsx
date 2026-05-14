@@ -363,11 +363,9 @@ export default function Album() {
 
   const handleOpenBulkRepeated = () => {
     const drafts = new Map<string, number>();
-    selection.forEach(code => {
-      if ((statusMap.get(code) ?? "no_tengo") === "pegado") {
-        drafts.set(code, repeatedMap.get(code) ?? 0);
-      }
-    });
+    worldCupAlbum.stickers
+      .filter(s => selection.has(s.stickerCode) && (statusMap.get(s.stickerCode) ?? "no_tengo") === "pegado")
+      .forEach(s => drafts.set(s.stickerCode, repeatedMap.get(s.stickerCode) ?? 0));
     setBulkRepeatedDrafts(drafts);
     setBulkRepeatedError("");
     setShowBulkRepeatedModal(true);
@@ -392,10 +390,11 @@ export default function Album() {
     });
 
     try {
-      let lastUpdated = prevAlbum;
-      for (const [code, count] of Array.from(bulkRepeatedDrafts.entries())) {
-        lastUpdated = await albumsService.updateStickerRepeated(albumId, code, Math.max(0, Math.floor(count)));
-      }
+      const updates = Array.from(bulkRepeatedDrafts.entries()).map(([code, count]) => ({
+        code,
+        repeated: Math.max(0, Math.floor(count)),
+      }));
+      const lastUpdated = await albumsService.bulkUpdateStickerRepeated(albumId, updates);
       setAlbum(prev => ({
         ...lastUpdated,
         permissions: lastUpdated.permissions ?? prev?.permissions ?? currentPermissions,
