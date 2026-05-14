@@ -10,6 +10,7 @@ import styles from "./index.module.scss";
 import { MembersSection } from "./MembersSection";
 import { ProgressSection } from "./ProgressSection";
 import { StickersSection } from "./StickersSection";
+import { TradeSuggestionModal } from "./TradeSuggestionModal";
 
 const INVITE_PERMISSION = "create-albumInvitation";
 const UPDATE_ALBUM_PERMISSION = "updateById-album";
@@ -104,6 +105,9 @@ export default function Album() {
   const [inviteSending, setInviteSending] = useState(false);
   const [inviteError, setInviteError] = useState("");
   const [inviteSent, setInviteSent] = useState(false);
+
+  // Trade suggestion modal
+  const [showTradeSuggestion, setShowTradeSuggestion] = useState(false);
 
   // Export modal
   const [showExportModal, setShowExportModal] = useState(false);
@@ -549,6 +553,7 @@ export default function Album() {
           onTeamSelect={code => { setSelectedTeamCode(code); clearSelection(); }}
           onModeChange={mode => { setStickerMode(mode); clearSelection(); }}
           onSearchChange={query => { setSearchQuery(query); clearSelection(); }}
+          onSuggestTrade={readOnlyAlbum && myAlbum ? () => setShowTradeSuggestion(true) : undefined}
         />
       </div>
 
@@ -647,7 +652,19 @@ export default function Album() {
                       <small>{managedAlbum.roleName}</small>
                     </div>
                     {managedAlbum.isCurrentUserMember ? (
-                      <span className={styles.memberAlreadyTag}>Ya sos miembro</span>
+                      <div className={styles.memberAlreadyGroup}>
+                        <span className={styles.memberAlreadyTag}>Ya sos miembro</span>
+                        <button
+                          type="button"
+                          className={styles.goToAlbumBtn}
+                          onClick={() => { setSelectedMember(null); navigate(`/album/${managedAlbum.id}`); }}
+                          title="Ir al álbum"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M5 12h14M13 6l6 6-6 6" />
+                          </svg>
+                        </button>
+                      </div>
                     ) : managedAlbum.pendingRequestId ? (
                       <span className={styles.memberAlreadyTag}>Solicitud pendiente</span>
                     ) : (
@@ -778,6 +795,12 @@ export default function Album() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {showTradeSuggestion && albumId && (
+        <div className={styles.overlay} onClick={() => setShowTradeSuggestion(false)}>
+          <TradeSuggestionModal albumId={albumId} onClose={() => setShowTradeSuggestion(false)} />
         </div>
       )}
     </div>

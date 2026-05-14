@@ -275,6 +275,33 @@ export const updateStickerRepeated = asyncHandler(async (
   res.status(200).json(mapAlbumResponse(album, permissions));
 });
 
+export const getTradeSuggestion = asyncHandler(async (
+  req: Request,
+  res: Response,
+  _next: NextFunction,
+) => {
+  const { authenticatedUser } = toAuthenticatedRequest(req);
+  const { albumId, permissions } = toAuthorizedMemberRequest(req).authorizedMember;
+
+  const suggestion = await services.albumService.getTradeSuggestion(authenticatedUser.id, albumId);
+
+  const members = await services.memberService.getMembers(albumId);
+  const album = await services.albumService.getAlbum(albumId);
+  const ownerMember = members.find(m => m.userId === album.ownerId);
+  const theirName = ownerMember?.user
+    ? `${ownerMember.user.fullname ?? ""}${ownerMember.user.surname ? ` ${ownerMember.user.surname}` : ""}`.trim() || ownerMember.user.username
+    : album.name;
+
+  void permissions;
+  res.status(200).json({
+    myName: `${authenticatedUser.fullname ?? ""}${authenticatedUser.surname ? ` ${authenticatedUser.surname}` : ""}`.trim() || authenticatedUser.username,
+    theirName,
+    suggestedExchange: suggestion.exchanges.map(e => ({ mySticker: e.iGive, theirSticker: e.theyGive })),
+    missingLoggedUser: suggestion.missingForMe,
+    missingExchangeUser: suggestion.missingForThem,
+  });
+});
+
 export const bulkUpdateStickerRepeated = asyncHandler(async (
   req: Request,
   res: Response,

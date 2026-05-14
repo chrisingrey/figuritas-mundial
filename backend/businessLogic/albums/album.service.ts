@@ -12,6 +12,7 @@ import { PermissionName, type Permission } from "@businessLogic/permissions";
 import { MemberStatus } from "@businessLogic/members";
 import { generateAlbumStickers, ALL_STICKER_CODES } from "./stickerTemplate";
 import { STICKER_STATUSES, type StickerStatus } from "./AlbumSticker";
+import { computeTradeSuggestion, type TradeSuggestionResult } from "./tradeSuggestion";
 
 export class AlbumService implements IAlbumService {
   constructor(
@@ -126,6 +127,19 @@ export class AlbumService implements IAlbumService {
       stickers: updatedStickers,
       updatedAt: new Date(),
     });
+  }
+
+  async getTradeSuggestion(myUserId: string, theirAlbumId: string): Promise<TradeSuggestionResult> {
+    const [myAlbum, theirAlbum] = await Promise.all([
+      this.albumRepository.getOrDefaultAsync((a: Album) => a.ownerId === myUserId),
+      this.albumRepository.getAsync((a: Album) => a.id === theirAlbumId),
+    ]);
+
+    if (!myAlbum) {
+      throw new AppError(400, ErrorCode.INVALID_ALBUM_DATA, "You don't have an album to suggest trades from.");
+    }
+
+    return computeTradeSuggestion(myAlbum.stickers, theirAlbum.stickers);
   }
 
   async createAlbum(args: CreateAlbumArgs): Promise<Album> {

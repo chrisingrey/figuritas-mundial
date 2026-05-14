@@ -132,6 +132,14 @@ Groups 1–12, four teams per group. Confederations: CONCACAF, CONMEBOL, UEFA, C
 - **No MUI icons** — use inline SVG with `strokeWidth="2.5"` (search) or `"3"` (chevrons)
 - **Accordions**: `<div role="button" aria-expanded={...}>` (NOT `<button>`), default open on desktop, closed on mobile — use `useState(() => window.matchMedia("(min-width: 760px)").matches)`
 - **Sticker status colors**: no_tengo → white bg, tengo → `#fff3cd`, pegado → `#b9e461`
+- **Tables** (neo-brutalist pattern):
+  - Wrapper: `border: 2px solid #101214`, `border-radius: 8px`, `box-shadow: 4px 4px 0 #101214`, `overflow: hidden`
+  - Header row: `background: #101214`, text `#f7d719`, `font-weight: 1000`, `text-transform: uppercase`, `font-size: 11px`, `letter-spacing: 0.04em`
+  - Data rows: alternating `#ffffff` / `#f8f7f1`, `border-top: 1px solid #e8e9ea`, padding `8px 12px`
+  - Column dividers inside rows: `border-right: 1px solid #e8e9ea` (not 2px — reserve 2px for outer borders)
+  - Cell text: `font-weight: 900`, `font-size: 13px`, `color: #101214`
+- **Group headers** (e.g. sticker groups, chip groups): `font-size: 10px`, `font-weight: 1000`, `text-transform: uppercase`, `letter-spacing: 0.04em`, `color: #5a5d63`, with a `<hr>` flex-line beside it (`border-top: 2px solid #e8e7e0`)
+- **Chip/tag pattern**: `padding: 3px 8px`, `background: #f8f7f1`, `border: 2px solid #101214`, `border-radius: 5px`, `font-size: 12px`, `font-weight: 900`
 
 ---
 

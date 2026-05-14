@@ -10,6 +10,7 @@ import {
   bulkUpdateStickers,
   updateStickerRepeated,
   bulkUpdateStickerRepeated,
+  getTradeSuggestion,
   shareAlbumWithViewer,
   getSharedAlbum,
   getRoles,
@@ -53,6 +54,7 @@ router.delete("/:albumId/leave", userAuthenticationFilter, leaveViewerAlbum);
 router.patch("/:albumId/stickers", userAuthenticationFilter, memberAuthorizationFilter(":albumId", PermissionName.UPDATE_BY_ID_ALBUM), bulkUpdateStickers);
 router.patch("/:albumId/stickers/:stickerCode/repeated", userAuthenticationFilter, memberAuthorizationFilter(":albumId", PermissionName.UPDATE_BY_ID_ALBUM), updateStickerRepeated);
 router.patch("/:albumId/stickers/repeated/bulk", userAuthenticationFilter, memberAuthorizationFilter(":albumId", PermissionName.UPDATE_BY_ID_ALBUM), bulkUpdateStickerRepeated);
+router.get("/:albumId/trade-suggestion", userAuthenticationFilter, memberAuthorizationFilter(":albumId", PermissionName.GET_BY_ID_ALBUM), getTradeSuggestion);
 
 // Roles
 router.get("/:albumId/roles", userAuthenticationFilter, memberAuthorizationFilter(":albumId", PermissionName.GET_ALL_ALBUM_ROLE), getRoles);

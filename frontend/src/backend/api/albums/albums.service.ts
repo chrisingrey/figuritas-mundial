@@ -76,6 +76,10 @@ export const albumsService = {
     );
   },
 
+  async getTradeSuggestion(albumId: string): Promise<import("./models").TradeSuggestionResponse> {
+    return api.get<import("./models").TradeSuggestionResponse>(`/${albumId}/trade-suggestion`);
+  },
+
   async bulkUpdateStickerRepeated(albumId: string, updates: { code: string; repeated: number }[]): Promise<AlbumResponse> {
     return api.patch<{ updates: { code: string; repeated: number }[] }, AlbumResponse>(
       { updates },

@@ -5,3 +5,4 @@ export type { InviteMemberRequest } from "./InviteMemberRequest";
 export type { InvitationResponse } from "./InvitationResponse";
 export type { AlbumRoleResponse } from "./AlbumRoleResponse";
 export type { AlbumRequestResponse, ManagedAlbumForRequestResponse } from "./AlbumRequestResponse";
+export type { TradeSuggestionResponse } from "./TradeSuggestionResponse";

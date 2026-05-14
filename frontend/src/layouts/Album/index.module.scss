@@ -998,6 +998,13 @@
   gap: 8px;
 }
 
+.memberAlreadyGroup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
 .memberAlreadyTag {
   flex-shrink: 0;
   padding: 4px 8px;
@@ -1007,6 +1014,27 @@
   border-radius: 999px;
   font-size: 10px !important;
   font-weight: 900 !important;
+}
+
+.goToAlbumBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  color: #ffffff;
+  background: #18a957;
+  border: 2px solid #101214;
+  border-radius: 7px;
+  box-shadow: 2px 2px 0 #101214;
+  cursor: pointer;
+  padding: 0;
+
+  &:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 #101214;
+  }
 }
 
 .requestAccessBtn {

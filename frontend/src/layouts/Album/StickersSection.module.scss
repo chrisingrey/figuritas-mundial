@@ -41,6 +41,32 @@
   }
 }
 
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.suggestTradeBtn {
+  padding: 4px 10px;
+  background: #b9e461;
+  border: 2px solid #101214;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+  color: #101214;
+  box-shadow: 2px 2px 0 #101214;
+  white-space: nowrap;
+  line-height: 1;
+
+  &:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 #101214;
+  }
+}
+
 .panelHeaderRight {
   display: flex;
   flex-direction: column;
@@ -94,9 +120,11 @@
   position: relative;
   z-index: 40;
   display: grid;
-  gap: 10px;
+  gap: 8px;
   margin-bottom: 18px;
-  padding: 12px;
+  padding: 10px;
+  width: 100%;
+  max-width: 100%;
   background: #f8f7f1;
   border: 2px solid #101214;
   border-radius: 8px;
@@ -108,7 +136,6 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  min-inline-size: 0;
 
   span,
   strong {
@@ -129,16 +156,18 @@
   display: flex;
   gap: 8px;
   align-items: center;
-  min-inline-size: 0;
+  width: 100%;
+  min-width: 0;
 }
 
 .searchWithIcon {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 44px;
-  padding: 0 12px;
+  min-height: 40px;
+  padding: 0 10px;
   background: #ffffff;
   border: 2px solid #101214;
   border-radius: 10px;
@@ -170,7 +199,7 @@
 
 .teamDropdown {
   position: relative;
-  flex-shrink: 0;
+  flex: 0 0 auto;
 }
 
 .teamCodeBtn {

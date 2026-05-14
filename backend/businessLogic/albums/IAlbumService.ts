@@ -2,6 +2,7 @@ import type { Album } from "./Album";
 import type { CreateAlbumArgs } from "./CreateAlbumArgs";
 import type { UpdateAlbumArgs } from "./UpdateAlbumArgs";
 import type { StickerStatus } from "./AlbumSticker";
+import type { TradeSuggestionResult } from "./tradeSuggestion";
 
 export interface IAlbumService {
   getAlbum(id: string): Promise<Album>;
@@ -12,4 +13,5 @@ export interface IAlbumService {
   bulkSetStickerStatus(albumId: string, codes: string[], status: StickerStatus): Promise<Album>;
   setStickerRepeated(albumId: string, code: string, repeated: number): Promise<Album>;
   bulkSetStickerRepeated(albumId: string, updates: { code: string; repeated: number }[]): Promise<Album>;
+  getTradeSuggestion(myUserId: string, theirAlbumId: string): Promise<TradeSuggestionResult>;
 }

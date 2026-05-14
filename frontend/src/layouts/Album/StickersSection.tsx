@@ -41,6 +41,7 @@ type Props = {
   onTeamSelect: (code: string) => void;
   onModeChange: (mode: StickerMode) => void;
   onSearchChange: (query: string) => void;
+  onSuggestTrade?: () => void;
 };
 
 type StickerGroup = { label: string; stickers: WorldCupSticker[] };
@@ -79,7 +80,7 @@ export function StickersSection({
   selection, selectionGroup, stickerMode, modeCounts,
   selectedTeamCode, searchQuery,
   readOnlyAlbum, hasMyAlbum,
-  onStickerClick, onTeamSelect, onModeChange, onSearchChange,
+  onStickerClick, onTeamSelect, onModeChange, onSearchChange, onSuggestTrade,
 }: Props) {
   const stickerGroups = useMemo(() => groupStickers(visibleStickers), [visibleStickers]);
   const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
@@ -118,7 +119,14 @@ export function StickersSection({
     <section className={styles.mainPanel}>
       <div className={styles.panelHeader}>
         <div>
-          <h2>{visibleTeam ? visibleTeam.name : "Figuritas"}</h2>
+          <div className={styles.titleRow}>
+            <h2>{visibleTeam ? visibleTeam.name : "Figuritas"}</h2>
+            {!visibleTeam && onSuggestTrade && (
+              <button type="button" className={styles.suggestTradeBtn} onClick={onSuggestTrade}>
+                Sugerir cambio
+              </button>
+            )}
+          </div>
           <p>
             {visibleTeam
               ? `Grupo ${visibleTeam.group} · ${visibleTeam.confederation}`
